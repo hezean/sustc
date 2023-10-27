@@ -1,0 +1,60 @@
+name: Bug report
+description: Report problems with code of service interfaces or runner.
+
+title: '[Module Name] Describe the bug'
+labels: [ 'type:bug', 'status:waiting-for-reply' ]
+
+body:
+  - type: markdown
+    attributes:
+      value: >
+        Thanks for taking the time to report a bug in the project.
+        
+        Please check that you've updated to the latest version of template
+        and search for any existing issues, including closed ones.
+
+  - type: dropdown
+    id: module
+    attributes:
+      label: Related module
+      description: >
+        Which module is this bug related to?
+      options:
+        - Code in sustc-api
+        - Database
+        - Shell
+        - Benchmark
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: What happened
+      description: Describe what happened.
+      placeholder: >
+        Please provide the context in which the problem occurred and explain what happened.
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: What you expected to happen
+      description: What do you think went wrong?
+      placeholder: >
+        Please explain why you think the behaviour is erroneous. It is extremely helpful if you copy and paste
+        the fragment of logs showing the exact error messages. You can include files by dragging and dropping them here.
+
+  - type: textarea
+    attributes:
+      label: How to reproduce
+      description: What should we do to reproduce the problem?
+      placeholder: |
+        1. Go to '...'
+        2. Click on '....'
+        3. Scroll down to '....'
+        4. See error
+
+  - type: textarea
+    attributes:
+      label: Anything else
+      description: Anything else we need to know?

@@ -1,0 +1,19 @@
+name: Document related
+description: Document about using the code template is not clear, misleading or missing.
+
+title: 'Describe the document issue'
+labels: [ 'type:docs', 'status:waiting-for-reply' ]
+
+body:
+  - type: markdown
+    attributes:
+      value: >
+        Thanks for taking the time to report a problem in the project.
+        
+        Please check that you've updated to the latest version of template
+        and search for any existing issues, including closed ones.
+
+  - type: textarea
+    attributes:
+      label: Describe your question
+      description: Which part of the document is not clear, misleading or missing?
