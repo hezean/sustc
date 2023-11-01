@@ -3,18 +3,31 @@ package io.sustc.benchmark;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.constraints.NotBlank;
 
-@Profile("benchmark")
 @Configuration
 @ConfigurationProperties(prefix = "benchmark")
 @Validated
 @Data
 public class BenchmarkConfig {
 
+    /**
+     * Base path for the data files (import + test cases).
+     */
     @NotBlank
-    private String runId;
+    private String dataPath;
+
+    /**
+     * Base path for the generated reports.
+     * If not specified, the reports will be generated in the current directory.
+     */
+    private String reportPath;
+
+    /**
+     * Indicator for enabling some additional steps that only run in student mode,
+     * e.g., truncate tables.
+     */
+    private Boolean studentMode = false;
 }

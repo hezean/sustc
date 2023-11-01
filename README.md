@@ -32,11 +32,6 @@ Create a private copy of [the template repository](https://github.com/hezean/sus
 the [Use this template](https://github.com/hezean/sustc/generate) button,
 or [download a zip copy](https://github.com/hezean/sustc/archive/refs/heads/main.zip) to work without using git.
 
-<span style="color:#f03c15"><b>
-For CS307 students, please use the code under `main` branch.
-For CS213 students, please use the code under `cs213` branch.
-</b></span>
-
 Consider _watching_ the template repository to track discussions/issues,
 and receive notifications when we update the template.
 
@@ -55,11 +50,12 @@ and receive notifications when we update the template.
 │                    ├── exceptions                        # You should throw correct exceptions as instructed in JavaDoc
 │                    │   └... EntityNotFoundException.java
 │                    └── service                           # The interfaces of services are defined here
-│                        ├... GroupService.java
+│                        ├... DatabaseService.java
 │                        └── impl                          # We suggest you to place your implementation here. Actually, any package is OK, as long as annotating the class as `@Service`
-│                            └... GroupServiceImpl.java
+│                            └... DatabaseServiceImpl.java
 └── sustc-runner                                           # We've provided you an interactive command line runner, a benchmark runner with sample data, and unit tests
     ├── compose.yml                                        # You may optionally use a container-based database to prevent polluting your local database
+    ├── data                                               # Contains records to import and test cases
     └── src/main
             ├── java
             │   └── io.sustc
@@ -82,7 +78,7 @@ Basically, you only need to focus on three directories:
 1. [`io.sustc.service`](sustc-api/src/main/java/io/sustc/service) package contains the interfaces of services you
    need to implement. You
    should not modify the interfaces. A demo implementation is provided in
-   [`GroupServiceImpl`](sustc-api/src/main/java/io/sustc/service/impl/GroupServiceImpl.java).
+   [`DatabaseServiceImpl`](sustc-api/src/main/java/io/sustc/service/impl/DatabaseServiceImpl.java).
    **Please also update the `getGroupMembers` method to help us identify your submission.**
 
 2. [`io.sustc.dto`](sustc-api/src/main/java/io/sustc/dto) package contains the definitions of DTOs (Data Transfer
@@ -101,8 +97,8 @@ After setting up your database and modifying the configuration file, you may run
 
 #### 3.1 Interactive shell
 
-You can test your services by typing commands in any sequence, with any data. Click the run button
-on the [main method](sustc-runner/src/main/java/io/sustc/Application.java) or run the Gradle task named `bootRun`.
+You can test your services by typing commands in any sequence, with any data. Run the Gradle task named **`bootRun`**
+to start the interactive shell.
 
 ```shell
 ./gradlew :sustc-runner:bootRun  # or simply   ./gradlew bootRun

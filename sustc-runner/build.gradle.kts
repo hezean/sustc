@@ -18,11 +18,15 @@ dependencies {
     implementation(platform("org.springframework.shell:spring-shell-dependencies:2.1.13"))
     implementation("org.springframework.shell:spring-shell-starter")
 
+    implementation("com.opencsv:opencsv:5.8")
+
+    implementation("org.springframework.boot:spring-boot-starter-validation")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 }
 
 tasks.withType<BootRun> {
     standardInput = System.`in`
+    jvmArgs("-Dbenchmark.data-path=$projectDir/data")
 }
 
 tasks.register("benchmark") {
