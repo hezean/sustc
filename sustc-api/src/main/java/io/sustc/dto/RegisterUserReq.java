@@ -3,7 +3,7 @@ package io.sustc.dto;
 import lombok.Data;
 
 @Data
-public class RegisterUserRequest {
+public class RegisterUserReq {
 
     private String phone;
 

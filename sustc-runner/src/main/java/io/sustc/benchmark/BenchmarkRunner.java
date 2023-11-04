@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 import java.io.FileWriter;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -40,19 +41,15 @@ public class BenchmarkRunner implements ShellApplicationRunner {
         log.info("Starting benchmark for group {}", databaseService.getGroupMembers());
         log.info("{}", benchmarkConfig);
 
-        if (benchmarkConfig.getStudentMode()) {
+        if (Boolean.TRUE.equals(benchmarkConfig.getStudentMode())) {
             log.warn("Truncating tables");
             databaseService.truncate();
         }
 
-        val results = Arrays.stream(benchmarkService.getClass().getMethods())
+        val results = Arrays.stream(BenchmarkService.class.getMethods())
                 .sequential()
                 .filter(method -> method.isAnnotationPresent(BenchmarkStep.class))
-                .sorted((m1, m2) -> {
-                    val s1 = m1.getAnnotation(BenchmarkStep.class).order();
-                    val s2 = m2.getAnnotation(BenchmarkStep.class).order();
-                    return Integer.compare(s1, s2);
-                })
+                .sorted(Comparator.comparingInt(m -> m.getAnnotation(BenchmarkStep.class).order()))
                 .peek(method -> log.info("Step {}: {}",
                         method.getAnnotation(BenchmarkStep.class).order(),
                         StringUtils.defaultIfEmpty(

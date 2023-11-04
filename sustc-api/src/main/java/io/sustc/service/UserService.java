@@ -1,7 +1,7 @@
 package io.sustc.service;
 
 import io.sustc.dto.AuthInfo;
-import io.sustc.dto.RegisterUserRequest;
+import io.sustc.dto.RegisterUserReq;
 
 import java.util.List;
 
@@ -13,7 +13,7 @@ public interface UserService {
      * @param req information of the new user
      * @return the new user's {@code mid}
      */
-    int register(RegisterUserRequest req);
+    int register(RegisterUserReq req);
 
     /**
      * Follows a user.
