@@ -7,10 +7,13 @@ import java.util.List;
 
 public interface DanmuService {
 
-    // FIXME: earn 2 coins??
-    // earn 1 additionally in birthday month?
     /**
      * Sends a danmu to a video.
+     * <ul>
+     *     <li>Remember to clean the "dirty words" in the content.</li>
+     *     <li>The danmu will be sent to the database directly.</li>
+     *     <li>The danmu will be displayed on the video page after 5 minutes.</li>
+     * </ul>
      *
      * @param auth    the current user's authentication information
      * @param bv      the video's bv
@@ -20,10 +23,16 @@ public interface DanmuService {
     void sendDanmu(AuthInfo auth, String bv, String content, Float time);
 
     /**
-     * Lists all danmus of a video.
+     * Display the danmus in a time range.
+     * Similar to bilibili's mechanism, user can choose to only display part of the danmus
+     * to have a better watch experience.
      *
-     * @param bv the video's bv
-     * @return a list of danmus
+     * @param bv     the video's bv
+     * @param time   the time within the desired range,
+     *               you should display danmus in the 10-second-trunk containing this time
+     * @param filter whether to remove the duplicated content,
+     *               if {@code true}, only the oldest danmu (earliest post time) with the same content will be displayed
+     * @return a list of danmus, sorted by {@code time}
      */
-    List<ListDanmuResp> listDanmu(String bv);
+    List<ListDanmuResp> displayDanmu(String bv, float time, boolean filter);
 }

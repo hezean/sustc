@@ -12,4 +12,6 @@ public final class BenchmarkConstants {
     public static final String USER_FILENAME = "users.csv";
 
     public static final String VIDEO_FILENAME = "videos.csv";
+
+    public static final int TIMEOUT_MINUTES = 5;
 }

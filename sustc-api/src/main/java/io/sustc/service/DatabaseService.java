@@ -18,6 +18,9 @@ public interface DatabaseService {
 
     /**
      * Imports data to an empty database from csv files.
+     * Note that there may have dirty data in some fields,
+     * you should handle them by yourself (e.g., ignore the following mid that doesn't exist).
+     * instead of interrupting the import process.
      *
      * @param danmuRecords a stream of danmu records
      * @param userRecords  a stream of user records

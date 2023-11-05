@@ -19,6 +19,9 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Objects;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 @Profile("benchmark")
@@ -58,10 +61,24 @@ public class BenchmarkRunner implements ShellApplicationRunner {
                         )
                 ))
                 .map(method -> {
+                    val executor = Executors.newCachedThreadPool();
+                    val future = executor.submit(() -> (BenchmarkResult) method.invoke(benchmarkService));
                     try {
-                        return (BenchmarkResult) method.invoke(benchmarkService);
-                    } catch (ReflectiveOperationException e) {
+                        return future.get(BenchmarkConstants.TIMEOUT_MINUTES, TimeUnit.MINUTES);
+                    } catch (TimeoutException e) {
+                        log.warn("Task timeout, cancelling it", e);
+                        future.cancel(true);
+                        if (method.getReturnType().equals(Void.TYPE)) {
+                            return null;
+                        }
+                        return BenchmarkResult.builder()
+                                .passCnt(0L)
+                                .elapsedTime(TimeUnit.MINUTES.toNanos(BenchmarkConstants.TIMEOUT_MINUTES))
+                                .build();
+                    } catch (Exception e) {
                         throw new RuntimeException(e);
+                    } finally {
+                        executor.shutdownNow();
                     }
                 })
                 .filter(Objects::nonNull)

@@ -7,8 +7,13 @@ public class RegisterUserReq {
 
     private String phone;
 
-    // FIXME: multi-credential support?
+    private String email;
+
     private String password;
+
+    private String qq;
+
+    private String wechat;
 
     private String name;
 

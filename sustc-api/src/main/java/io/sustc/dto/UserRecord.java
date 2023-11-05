@@ -30,6 +30,21 @@ public class UserRecord {
     @CsvBindByName(column = "identity")
     private Identity identity;
 
+    @CsvBindByName(column = "password")
+    private String password;
+
+    @CsvBindByName(column = "qq")
+    private String qq;
+
+    @CsvBindByName(column = "wechat")
+    private String wechat;
+
+    @CsvBindByName(column = "phone")
+    private String phone;
+
+    @CsvBindByName(column = "email")
+    private String email;
+
     public enum Identity {
         USER,
         SUPERUSER,
