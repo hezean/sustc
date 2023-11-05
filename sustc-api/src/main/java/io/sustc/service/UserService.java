@@ -2,6 +2,8 @@ package io.sustc.service;
 
 import io.sustc.dto.AuthInfo;
 import io.sustc.dto.RegisterUserReq;
+import io.sustc.dto.UserInfoResp;
+import org.springframework.lang.Nullable;
 
 import java.util.List;
 
@@ -17,6 +19,17 @@ public interface UserService {
      * @return the new user's {@code mid}
      */
     int register(RegisterUserReq req);
+
+    /**
+     * Deletes a user.
+     * If the current user is a regular user, only the current user can be deleted.
+     * If the current user is a superuser, and {@code mid} is not null, the user with {@code mid} will be deleted.
+     * If the current user is a superuser, and {@code mid} is null, the current user will be deleted.
+     *
+     * @param auth indicates the current user
+     * @param mid  the user to be deleted, or null to delete the current user
+     */
+    void deleteAccount(AuthInfo auth, @Nullable Long mid);
 
     /**
      * Follows a user.
@@ -40,5 +53,5 @@ public interface UserService {
      * @param mid the user to be queried
      * @return the number of coins
      */
-    int getUserInfo(int mid);
+    UserInfoResp getUserInfo(int mid);
 }

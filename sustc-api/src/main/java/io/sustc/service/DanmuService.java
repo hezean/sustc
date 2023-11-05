@@ -35,4 +35,15 @@ public interface DanmuService {
      * @return a list of danmus, sorted by {@code time}
      */
     List<ListDanmuResp> displayDanmu(String bv, float time, boolean filter);
+
+    /**
+     * Likes a danmu.
+     * If the user already liked the danmu, this operation will cancel the like status.
+     *
+     * @param auth the current user's authentication information
+     * @param bv   the video's bv
+     * @param mid  the danmu sender's mid
+     * @param time the danmu's time
+     */
+    void likeDanmu(AuthInfo auth, String bv, Long mid, Float time);
 }
