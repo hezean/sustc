@@ -20,7 +20,7 @@ public interface DanmuService {
      * @param content the content of danmu
      * @param time    seconds since the video starts
      */
-    void sendDanmu(AuthInfo auth, String bv, String content, Float time);
+    void sendDanmu(AuthInfo auth, String bv, String content, float time);
 
     /**
      * Display the danmus in a time range.
@@ -34,7 +34,7 @@ public interface DanmuService {
      *               if {@code true}, only the oldest danmu (earliest post time) with the same content will be displayed
      * @return a list of danmus, sorted by {@code time}
      */
-    List<ListDanmuResp> displayDanmu(String bv, float time, boolean filter);
+    List<ListDanmuResp> displayDanmu(String bv, float time, boolean filter); //TODO: check the type of time
 
     /**
      * Likes a danmu.
@@ -45,5 +45,5 @@ public interface DanmuService {
      * @param mid  the danmu sender's mid
      * @param time the danmu's time
      */
-    void likeDanmu(AuthInfo auth, String bv, Long mid, Float time);
+    void likeDanmu(AuthInfo auth, String bv, long mid, float time);
 }

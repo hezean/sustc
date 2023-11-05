@@ -35,7 +35,7 @@ public interface RecommenderService {
      * @param pageNum  the page number, starts from 1
      * @return a list of video {@code bv}s
      */
-    List<String> recommendVideosForUser(int mid, int pageSize, int pageNum);
+    List<String> recommendVideosForUser(long mid, int pageSize, int pageNum);
 
     /**
      * Recommends a list of top 5 similar videos for a video.
@@ -57,5 +57,5 @@ public interface RecommenderService {
      * @param pageNum  the page number, starts from 1
      * @return a list of {@code mid}s of the recommended users
      */
-    List<Long> recommendFriends(int mid, int pageSize, int pageNum);
+    List<Long> recommendFriends(long mid, int pageSize, int pageNum);
 }

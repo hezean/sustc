@@ -64,11 +64,11 @@ public class VideoRecord {
 
     @Data
     @AllArgsConstructor
-    public static class ViewRecord {
+    public static class ViewRecord { //TODO: check the type of time stamp
 
         private Long mid;
 
-        private Long timestamp;
+        private Long timestamp; //TODO: check the type of time stamp
     }
 
     public static class ViewRecordConverter extends AbstractCsvConverter {
