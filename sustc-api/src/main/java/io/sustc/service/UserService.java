@@ -32,7 +32,7 @@ public interface UserService {
     void deleteAccount(AuthInfo auth, @Nullable Long mid);
 
     /**
-     * Follow the user with {@code mid}. // TODO: unfollow ?
+     * Follow the user with {@code mid}.
      * If that user has already been followed, unfollow the user.
      *
      * @param auth        the authentication information of the follower

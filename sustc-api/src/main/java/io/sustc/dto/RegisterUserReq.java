@@ -5,10 +5,6 @@ import lombok.Data;
 @Data
 public class RegisterUserReq {
 
-    private String phone;
-
-    private String email;
-
     private String password;
 
     private String qq;

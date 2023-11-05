@@ -6,19 +6,14 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class AuthInfo {
-    // TODO: should we add mid info in AuthInfo? it can be too hard.
-    /**
-     * The user's phone number. If it's provided, the {@code email} field will be null.
-     */
-    private final String phone;
 
     /**
-     * The user's email address. If it's provided, the {@code phone} field will be null.
+     * The user's mid.
      */
-    private final String email;
+    private final long mid;
 
     /**
-     * The password used when login by phone/email.
+     * The password used when login by mid.
      */
     private final String password;
 
