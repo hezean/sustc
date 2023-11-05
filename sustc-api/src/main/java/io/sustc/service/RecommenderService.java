@@ -8,14 +8,18 @@ public interface RecommenderService {
      * Recommends videos for anonymous users, based on the popularity.
      * Evaluate the video's popularity from the following aspects:
      * <ol>
-     *     <li>The number of users who have watched this video</li>
-     *     <li>The rate of watched users who also liked or donated coin to this video</li>
-     *     <li>The average number of danmus sent by one watched user</li>
+     *     <li>"watch": the number of users who have watched this video</li>
+     *     <li>"fav": the rate of watched users who also liked or donated coin to this video</li>
+     *     <li>"danmu": the average number of danmus sent by one watched user</li>
      * </ol>
+     * The recommendation score can be calculated as:
+     * <pre>
+     *     score = 0.8 * watch + 1.2 * fav + danmu
+     * </pre>
      *
      * @param pageSize the page size, if there are less than {@code pageSize} videos, return all of them
      * @param pageNum  the page number, starts from 1
-     * @return a list of video {@code bv}s, sorted by the recommendation evaluation
+     * @return a list of video {@code bv}s, sorted by the recommendation score
      */
     List<String> generalRecommendations(int pageSize, int pageNum);
 
