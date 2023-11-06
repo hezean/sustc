@@ -111,7 +111,7 @@ You may type `help` after the application starts up to see the list of available
 
 #### 3.2 Benchmark with sample data
 
-[The benchmark script](sustc-runner/src/main/java/io/sustc/benchmark/BenchmarkRunner.java) works exactly the same as how
+[The benchmark service](sustc-runner/src/main/java/io/sustc/benchmark/BenchmarkService.java) works exactly the same as how
 we will judge your submission, which grades your services based on both correctness and performance.
 To run the benchmark, use the **`benchmark`** Gradle task.
 
