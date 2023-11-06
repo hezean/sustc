@@ -34,7 +34,7 @@ public interface DanmuService {
      *               if {@code true}, only the oldest danmu (earliest post time) with the same content will be displayed
      * @return a list of danmus, sorted by {@code time}
      */
-    List<ListDanmuResp> displayDanmu(String bv, float time, boolean filter); //TODO: check the type of time
+    List<ListDanmuResp> displayDanmu(String bv, float timeStart, float timeEnd, boolean filter);
 
     /**
      * Likes a danmu.
