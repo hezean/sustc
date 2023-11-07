@@ -20,21 +20,21 @@ public interface DanmuService {
      * @param content the content of danmu
      * @param time    seconds since the video starts
      */
-    void sendDanmu(AuthInfo auth, String bv, String content, Float time);
+    void sendDanmu(AuthInfo auth, String bv, String content, float time);
 
     /**
      * Display the danmus in a time range.
      * Similar to bilibili's mechanism, user can choose to only display part of the danmus
      * to have a better watch experience.
      *
-     * @param bv     the video's bv
-     * @param time   the time within the desired range,
-     *               you should display danmus in the 10-second-trunk containing this time
-     * @param filter whether to remove the duplicated content,
-     *               if {@code true}, only the oldest danmu (earliest post time) with the same content will be displayed
+     * @param bv        the video's bv
+     * @param timeStart the start time of the range
+     * @param timeEnd   the end time of the range
+     * @param filter    whether to remove the duplicated content,
+     *                  if {@code true}, only the earliest posted danmu with the same content will be displayed
      * @return a list of danmus, sorted by {@code time}
      */
-    List<ListDanmuResp> displayDanmu(String bv, float time, boolean filter);
+    List<ListDanmuResp> displayDanmu(String bv, float timeStart, float timeEnd, boolean filter);
 
     /**
      * Likes a danmu.
@@ -45,5 +45,5 @@ public interface DanmuService {
      * @param mid  the danmu sender's mid
      * @param time the danmu's time
      */
-    void likeDanmu(AuthInfo auth, String bv, Long mid, Float time);
+    void likeDanmu(AuthInfo auth, String bv, long mid, float time);
 }

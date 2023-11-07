@@ -68,7 +68,7 @@ public class VideoRecord {
 
         private Long mid;
 
-        private Long timestamp;
+        private Float timestamp;
     }
 
     public static class ViewRecordConverter extends AbstractCsvConverter {
@@ -83,7 +83,7 @@ public class VideoRecord {
             }
             return new ViewRecord(
                     Long.parseLong(matcher.group("mid")),
-                    Long.parseLong(matcher.group("ts"))
+                    Float.parseFloat(matcher.group("ts"))
             );
         }
     }

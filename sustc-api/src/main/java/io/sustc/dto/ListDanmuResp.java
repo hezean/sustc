@@ -14,12 +14,12 @@ public class ListDanmuResp {
     /**
      * The danmu's sender mid.
      */
-    private Long mid;
+    private long mid;
 
     /**
      * The danmu's display time (in seconds) since the video starts.
      */
-    private Float time;
+    private float time;
 
     /**
      * The danmu's content.
@@ -29,5 +29,5 @@ public class ListDanmuResp {
     /**
      * The number of users who liked this danmu.
      */
-    private Integer likedBy;
+    private int likedBy;
 }

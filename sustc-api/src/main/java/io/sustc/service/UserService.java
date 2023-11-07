@@ -18,7 +18,7 @@ public interface UserService {
      * @param req information of the new user
      * @return the new user's {@code mid}
      */
-    int register(RegisterUserReq req);
+    long register(RegisterUserReq req);
 
     /**
      * Deletes a user.
@@ -32,12 +32,13 @@ public interface UserService {
     void deleteAccount(AuthInfo auth, @Nullable Long mid);
 
     /**
-     * Follows a user.
+     * Follow the user with {@code mid}.
+     * If that user has already been followed, unfollow the user.
      *
      * @param auth        the authentication information of the follower
      * @param followeeMid the user who will be followed
      */
-    void follow(AuthInfo auth, int followeeMid);
+    void follow(AuthInfo auth, long followeeMid);
 
     /**
      * Lists all the users who follow a user.
@@ -45,7 +46,7 @@ public interface UserService {
      * @param mid the user to be queried
      * @return a list of {@code mid}s of the followers
      */
-    List<Integer> getFollowers(int mid);
+    List<Long> getFollowers(long mid);
 
     /**
      * Gets the required information (in DTO) of a user.
@@ -53,5 +54,5 @@ public interface UserService {
      * @param mid the user to be queried
      * @return the number of coins
      */
-    UserInfoResp getUserInfo(int mid);
+    UserInfoResp getUserInfo(long mid);
 }

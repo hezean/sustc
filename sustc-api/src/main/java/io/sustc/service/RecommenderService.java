@@ -8,14 +8,20 @@ public interface RecommenderService {
      * Recommends videos for anonymous users, based on the popularity.
      * Evaluate the video's popularity from the following aspects:
      * <ol>
-     *     <li>The number of users who have watched this video</li>
-     *     <li>The rate of watched users who also liked or donated coin to this video</li>
-     *     <li>The average number of danmus sent by one watched user</li>
+     *     <li>"like": the rate of watched users who also liked this video</li>
+     *     <li>"coin": the rate of watched users who also donated coin to this video</li>
+     *     <li>"fav": the rate of watched users who also collected this video</li>
+     *     <li>"danmu": the average number of danmus sent by one watched user</li>
+     *     <li>"finish": the average video watched percentage of one watched user</li>
      * </ol>
+     * The recommendation score can be calculated as:
+     * <pre>
+     *     score = like + coin + fav + danmu + finish
+     * </pre>
      *
      * @param pageSize the page size, if there are less than {@code pageSize} videos, return all of them
      * @param pageNum  the page number, starts from 1
-     * @return a list of video {@code bv}s, sorted by the recommendation evaluation
+     * @return a list of video {@code bv}s, sorted by the recommendation score
      */
     List<String> generalRecommendations(int pageSize, int pageNum);
 
@@ -35,7 +41,7 @@ public interface RecommenderService {
      * @param pageNum  the page number, starts from 1
      * @return a list of video {@code bv}s
      */
-    List<String> recommendVideosForUser(int mid, int pageSize, int pageNum);
+    List<String> recommendVideosForUser(long mid, int pageSize, int pageNum);
 
     /**
      * Recommends a list of top 5 similar videos for a video.
@@ -57,5 +63,5 @@ public interface RecommenderService {
      * @param pageNum  the page number, starts from 1
      * @return a list of {@code mid}s of the recommended users
      */
-    List<Long> recommendFriends(int mid, int pageSize, int pageNum);
+    List<Long> recommendFriends(long mid, int pageSize, int pageNum);
 }

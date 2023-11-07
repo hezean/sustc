@@ -39,12 +39,6 @@ public class UserRecord {
     @CsvBindByName(column = "wechat")
     private String wechat;
 
-    @CsvBindByName(column = "phone")
-    private String phone;
-
-    @CsvBindByName(column = "email")
-    private String email;
-
     public enum Identity {
         USER,
         SUPERUSER,

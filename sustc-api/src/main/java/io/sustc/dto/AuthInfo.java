@@ -8,17 +8,12 @@ import lombok.Data;
 public class AuthInfo {
 
     /**
-     * The user's phone number. If it's provided, the {@code email} field will be null.
+     * The user's mid.
      */
-    private final String phone;
+    private final long mid;
 
     /**
-     * The user's email address. If it's provided, the {@code phone} field will be null.
-     */
-    private final String email;
-
-    /**
-     * The password used when login by phone/email.
+     * The password used when login by mid.
      */
     private final String password;
 

@@ -43,11 +43,11 @@ public interface VideoService {
      *     <li>description</li>
      *     <li>owner name</li>
      * </ol>
-     * Sort the results by the relevance (the number of matched keywords,
-     * if a keyword occurs multiple times, it should only be counted more than once).
+     * Sort the results by the relevance (sum up the number of keywords matched in the three fields,
+     * if a keyword occurs multiple times, it should be counted more than once).
      * If two videos have the same relevance, sort them by the number of views.
      * <p>
-     * Unreviewed videos are only visible to superusers or the video owner.
+     * Unreviewed or unpublished videos are only visible to superusers or the video owner.
      *
      * @param auth     the current user's authentication information
      * @param keywords the keywords to search, e.g. "sustech database final review"
