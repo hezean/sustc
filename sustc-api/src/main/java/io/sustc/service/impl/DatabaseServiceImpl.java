@@ -47,6 +47,12 @@ public class DatabaseServiceImpl implements DatabaseService {
             Stream<UserRecord> userRecords,
             Stream<VideoRecord> videoRecords
     ) {
+        // Java Stream API: https://www.baeldung.com/java-8-streams
+
+        // You may convert a stream to a List or Array, for example:
+        // List<DanmuRecord> danmuList = danmuRecords.collect(Collectors.toList());
+        // DanmuRecord[] danmuArray = danmuRecords.toArray(DanmuRecord[]::new);
+
         throw new UnsupportedOperationException("TODO: implement your import logic");
     }
 
@@ -85,7 +91,7 @@ public class DatabaseServiceImpl implements DatabaseService {
 
     @Override
     public Integer sum(int a, int b) {
-        String sql = "SELECT SUM(sid) FROM UNNEST(ARRAY[?, ?]) AS sid";
+        String sql = "SELECT ?+?";
 
         try (Connection conn = dataSource.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
