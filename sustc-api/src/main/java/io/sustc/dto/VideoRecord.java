@@ -56,11 +56,11 @@ public class VideoRecord {
 
     @CsvBindAndSplitByName(
             column = "View",
-            elementType = VideoRecord.class,
+            elementType = ViewRecord.class,
             converter = ViewRecordConverter.class,
             splitOn = "(?<=\\)),\\s*(?=\\()"
     )
-    private List<VideoRecord> view;
+    private List<ViewRecord> view;
 
     @Data
     @AllArgsConstructor
