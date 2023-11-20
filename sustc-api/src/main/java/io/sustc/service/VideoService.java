@@ -81,7 +81,7 @@ public interface VideoService {
      *
      * @param auth the current user's authentication information
      * @param bv   the video's {@code bv}
-     * @return {@code true} if the video is successfully reviewed, {@code false} if the video is already reviewed
+     * @return {@code true} if the video is newly successfully reviewed, {@code false} otherwise
      */
     boolean reviewVideo(AuthInfo auth, String bv);
 
