@@ -10,7 +10,7 @@ public interface DanmuService {
     /**
      * Sends a danmu to a video.
      * <ul>
-     *     <li>Remember to clean the "dirty words" in the content.</li>
+     *     <li>Cherry's system will clean the "dirty words" in the content.</li>
      *     <li>The danmu will be sent to the database directly.</li>
      *     <li>The danmu will be displayed on the video page after 5 minutes.</li>
      * </ul>
