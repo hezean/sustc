@@ -80,6 +80,8 @@ public class BenchmarkRunner implements ShellApplicationRunner {
                                 .passCnt(0L)
                                 .elapsedTime(TimeUnit.MINUTES.toNanos(BenchmarkConstants.TIMEOUT_MINUTES))
                                 .build();
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
                     } finally {
                         executor.shutdownNow();
                     }
