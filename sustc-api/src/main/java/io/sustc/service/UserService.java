@@ -9,8 +9,7 @@ public interface UserService {
 
     /**
      * Registers a new user.
-     * Should at least provide a {@code password}.
-     * {@code qq} and {@code wechat} are optional
+     * {@code password} is a mandatory field, while {@code qq} and {@code wechat} are optional
      * <a href="https://openid.net/developers/how-connect-works/">OIDC</a> fields.
      *
      * @param req information of the new user
