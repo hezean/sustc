@@ -42,8 +42,7 @@ public interface DanmuService {
      *
      * @param auth the current user's authentication information
      * @param bv   the video's bv
-     * @param mid  the danmu sender's mid
-     * @param time the danmu's time
+     * @param danmuId  the danmu sender's mid
      */
-    void likeDanmu(AuthInfo auth, String bv, long mid, float time);
+    void likeDanmu(AuthInfo auth, String bv, long danmuId);
 }
