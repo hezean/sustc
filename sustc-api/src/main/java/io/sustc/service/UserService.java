@@ -11,7 +11,7 @@ public interface UserService {
 
     /**
      * Registers a new user.
-     * Should at least provide either {@code phone} or {@code email} and a {@code password}.
+     * Should at least provide a {@code password}.
      * {@code qq} and {@code wechat} are optional
      * <a href="https://openid.net/developers/how-connect-works/">OIDC</a> fields.
      *
@@ -52,7 +52,7 @@ public interface UserService {
      * Gets the required information (in DTO) of a user.
      *
      * @param mid the user to be queried
-     * @return the number of coins
+     * @return {@code mid}s person Information
      */
     UserInfoResp getUserInfo(long mid);
 }
