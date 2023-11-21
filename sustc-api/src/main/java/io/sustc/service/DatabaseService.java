@@ -5,7 +5,6 @@ import io.sustc.dto.UserRecord;
 import io.sustc.dto.VideoRecord;
 
 import java.util.List;
-import java.util.stream.Stream;
 
 public interface DatabaseService {
 
@@ -17,20 +16,16 @@ public interface DatabaseService {
     List<Integer> getGroupMembers();
 
     /**
-     * Imports data to an empty database from csv files.
-     * Note that there may have dirty data in some fields,
-     * you should handle them by yourself (e.g., ignore the following mid that doesn't exist).
-     * instead of interrupting the import process.
+     * Imports data to an empty database.
      *
-     * @param danmuRecords a stream of danmu records
-     * @param userRecords  a stream of user records
-     * @param videoRecords a stream of video records
-     * @return the sum of successfully imported users, videos and danmus
+     * @param danmuRecords danmu records parsed from csv
+     * @param userRecords  user records parsed from csv
+     * @param videoRecords video records parsed from csv
      */
-    long importData(
-            Stream<DanmuRecord> danmuRecords,
-            Stream<UserRecord> userRecords,
-            Stream<VideoRecord> videoRecords
+    void importData(
+            List<DanmuRecord> danmuRecords,
+            List<UserRecord> userRecords,
+            List<VideoRecord> videoRecords
     );
 
     /**
@@ -43,8 +38,10 @@ public interface DatabaseService {
 
     /**
      * Sums up two numbers via Postgres.
-     * This method only demonstrates how to access database using raw java.sql classes.
+     * This method only demonstrates how to access database via JDBC.
      *
+     * @param a the first number
+     * @param b the second number
      * @return the sum of all student-ids
      */
     Integer sum(int a, int b);

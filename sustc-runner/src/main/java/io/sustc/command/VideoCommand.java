@@ -143,7 +143,7 @@ public class VideoCommand {
     }
 
     @ShellMethod("video coin")
-    public void coinVideo(
+    public boolean coinVideo(
             @ShellOption(defaultValue = ShellOption.NULL) Long mid,
             @ShellOption(defaultValue = ShellOption.NULL) String pwd,
             @ShellOption(defaultValue = ShellOption.NULL) String qq,
@@ -157,7 +157,7 @@ public class VideoCommand {
                 .wechat(wechat)
                 .build();
 
-        videoService.coinVideo(auth, bv);
+        return videoService.coinVideo(auth, bv);
     }
 
     @ShellMethod("video like")

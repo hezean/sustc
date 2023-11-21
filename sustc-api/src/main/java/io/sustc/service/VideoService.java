@@ -87,11 +87,13 @@ public interface VideoService {
 
     /**
      * Donates one coin to the video.
+     * A user can at most donate 2 coins to a video.
      *
      * @param auth the current user's authentication information
      * @param bv   the video's {@code bv}
+     * @return whether a coin is successfully donated
      */
-    void coinVideo(AuthInfo auth, String bv);
+    boolean coinVideo(AuthInfo auth, String bv);
 
     /**
      * Likes a video.

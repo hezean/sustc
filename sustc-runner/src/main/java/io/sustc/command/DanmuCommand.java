@@ -1,7 +1,6 @@
 package io.sustc.command;
 
 import io.sustc.dto.AuthInfo;
-import io.sustc.dto.ListDanmuResp;
 import io.sustc.service.DanmuService;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +38,7 @@ public class DanmuCommand {
     }
 
     @ShellMethod("danmu display")
-    public List<ListDanmuResp> displayDanmu(
+    public List<Long> displayDanmu(
             String bv,
             Float timeStart,
             Float timeEnd,
@@ -54,9 +53,7 @@ public class DanmuCommand {
             @ShellOption(defaultValue = ShellOption.NULL) String pwd,
             @ShellOption(defaultValue = ShellOption.NULL) String qq,
             @ShellOption(defaultValue = ShellOption.NULL) String wechat,
-            String bv,
-            Long senderMid,
-            Float time
+            Long id
     ) {
         val auth = AuthInfo.builder()
                 .mid(mid)
@@ -64,6 +61,6 @@ public class DanmuCommand {
                 .qq(qq)
                 .wechat(wechat)
                 .build();
-        danmuService.likeDanmu(auth, bv, senderMid, time);
+        danmuService.likeDanmu(auth, id);
     }
 }

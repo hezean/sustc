@@ -11,6 +11,8 @@ import lombok.Data;
 @Builder
 public class BenchmarkResult {
 
+    private Integer id;
+
     private Long passCnt;
 
     private Long elapsedTime;

@@ -39,31 +39,29 @@ public class BenchmarkService {
         val danmuRecords = new CsvToBeanBuilder<DanmuRecord>(danmuReader)
                 .withType(DanmuRecord.class)
                 .build()
-                .stream();
+                .parse();
 
         val userRecords = new CsvToBeanBuilder<UserRecord>(userReader)
                 .withType(UserRecord.class)
                 .withFieldAsNull(CSVReaderNullFieldIndicator.EMPTY_SEPARATORS)
                 .build()
-                .stream();
+                .parse();
 
         val videoRecords = new CsvToBeanBuilder<VideoRecord>(videoReader)
                 .withType(VideoRecord.class)
                 .withFieldAsNull(CSVReaderNullFieldIndicator.EMPTY_SEPARATORS)
                 .build()
-                .stream();
+                .parse();
 
-        var importedRecordCnt = 0L;
         val startedTime = System.nanoTime();
         try {
-            importedRecordCnt = databaseService.importData(danmuRecords, userRecords, videoRecords);
+            databaseService.importData(danmuRecords, userRecords, videoRecords);
         } catch (Exception e) {
             log.error("Exception encountered during importing data, you may early stop this run", e);
         }
         val finishedTime = System.nanoTime();
 
         return BenchmarkResult.builder()
-                .passCnt(importedRecordCnt)
                 .elapsedTime(finishedTime - startedTime)
                 .build();
     }

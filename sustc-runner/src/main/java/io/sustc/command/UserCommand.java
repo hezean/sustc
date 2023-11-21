@@ -79,11 +79,6 @@ public class UserCommand {
         userService.follow(auth, followeeMid);
     }
 
-    @ShellMethod("user followers")
-    public List<Long> getFollowers(Long mid) {
-        return userService.getFollowers(mid);
-    }
-
     @ShellMethod("user info")
     public UserInfoResp getUserInfo(Long mid) {
         return userService.getUserInfo(mid);

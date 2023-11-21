@@ -14,7 +14,9 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.shell.ShellApplicationRunner;
 import org.springframework.stereotype.Component;
 
-import java.io.FileWriter;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -64,7 +66,9 @@ public class BenchmarkRunner implements ShellApplicationRunner {
                     val executor = Executors.newCachedThreadPool();
                     val future = executor.submit(() -> (BenchmarkResult) method.invoke(benchmarkService));
                     try {
-                        return future.get(BenchmarkConstants.TIMEOUT_MINUTES, TimeUnit.MINUTES);
+                        val res = future.get(BenchmarkConstants.TIMEOUT_MINUTES, TimeUnit.MINUTES);
+                        res.setId(method.getAnnotation(BenchmarkStep.class).order());
+                        return res;
                     } catch (TimeoutException e) {
                         log.warn("Task timeout, cancelling it", e);
                         future.cancel(true);
@@ -72,11 +76,10 @@ public class BenchmarkRunner implements ShellApplicationRunner {
                             return null;
                         }
                         return BenchmarkResult.builder()
+                                .id(method.getAnnotation(BenchmarkStep.class).order())
                                 .passCnt(0L)
                                 .elapsedTime(TimeUnit.MINUTES.toNanos(BenchmarkConstants.TIMEOUT_MINUTES))
                                 .build();
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
                     } finally {
                         executor.shutdownNow();
                     }
@@ -92,7 +95,10 @@ public class BenchmarkRunner implements ShellApplicationRunner {
                 .toFile();
 
         log.info("Benchmark finished, writing report to file: {}", reportFile);
-        @Cleanup val writer = new FileWriter(reportFile);
+        @Cleanup val writer = new OutputStreamWriter(
+                Files.newOutputStream(reportFile.toPath()),
+                StandardCharsets.UTF_8
+        );
         val beanToCsv = new StatefulBeanToCsvBuilder<BenchmarkResult>(writer)
                 .withApplyQuotesToAll(false)
                 .build();

@@ -5,8 +5,6 @@ import io.sustc.dto.RegisterUserReq;
 import io.sustc.dto.UserInfoResp;
 import org.springframework.lang.Nullable;
 
-import java.util.List;
-
 public interface UserService {
 
     /**
@@ -39,14 +37,6 @@ public interface UserService {
      * @param followeeMid the user who will be followed
      */
     void follow(AuthInfo auth, long followeeMid);
-
-    /**
-     * Lists all the users who follow a user.
-     *
-     * @param mid the user to be queried
-     * @return a list of {@code mid}s of the followers
-     */
-    List<Long> getFollowers(long mid);
 
     /**
      * Gets the required information (in DTO) of a user.

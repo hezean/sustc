@@ -42,17 +42,11 @@ public class DatabaseServiceImpl implements DatabaseService {
     }
 
     @Override
-    public long importData(
-            Stream<DanmuRecord> danmuRecords,
-            Stream<UserRecord> userRecords,
-            Stream<VideoRecord> videoRecords
+    public void importData(
+            List<DanmuRecord> danmuRecords,
+            List<UserRecord> userRecords,
+            List<VideoRecord> videoRecords
     ) {
-        // Java Stream API: https://www.baeldung.com/java-8-streams
-
-        // You may convert a stream to a List or Array, for example:
-        // List<DanmuRecord> danmuList = danmuRecords.collect(Collectors.toList());
-        // DanmuRecord[] danmuArray = danmuRecords.toArray(DanmuRecord[]::new);
-
         throw new UnsupportedOperationException("TODO: implement your import logic");
     }
 
