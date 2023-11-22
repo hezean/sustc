@@ -25,9 +25,9 @@ public class DatabaseCommand {
     }
 
     @ShellMethod(key = "db import", value = "Import data from csv")
-    public long importData() {
+    public void importData() {
         databaseService.truncate();
-        return benchmarkService.importData().getPassCnt();
+        benchmarkService.importData();
     }
 
     @ShellMethod(key = "db truncate", value = "Truncate tables")
