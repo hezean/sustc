@@ -129,7 +129,7 @@ As previously mentioned, you need to submit a jar file that contains your implem
 
 Then you should find a `submit` folder under the root of project, containing a single jar file
 (its size should be about 8~10 MB if you didn't add any additional dependencies).
-**We don't accept jar files larger than 30 MB, so please don't add too much dependencies.**
+**We don't accept jar files larger than 20 MB, so please don't add too much dependencies.**
 
 > If any jar file presents in the `submit` folder, the runner will use it
 > instead of the latest code in `sustc-api` module.
@@ -154,7 +154,7 @@ detection. Please run the `clean` task before archiving your source code, which 
 ./gradlew clean
 ```
 
-After cleaning up, the source archive should not be larger than 10 MB.
+After cleaning up, the source archive of __sustc-api__ should not be larger than 10 MB.
 
 Finally, upload these zip files with any other resources as specified to Blackboard.
 

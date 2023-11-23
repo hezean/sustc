@@ -43,31 +43,31 @@ public interface VideoService {
      *     <li>description</li>
      *     <li>owner name</li>
      * </ol>
-     * 
+     * <p>
      * Sort the results by the relevance (sum up the number of keywords matched in the three fields).
      * <ul>
-     *  <li>If a keyword occurs multiple times, it should be counted more than once.</li>
-     *  <li>A character in these fields can only be counted once for each keyword but can be counted for different keywords.</li>
-     *  <li>If two videos have the same relevance, sort them by the number of views.</li>
+     *     <li>If a keyword occurs multiple times, it should be counted more than once.</li>
+     *     <li>
+     *         A character in these fields can only be counted once for each keyword
+     *         but can be counted for different keywords.
+     *     </li>
+     *     <li>If two videos have the same relevance, sort them by the number of views.</li>
      * </ul>
      * <p>
      * Examples:
      * <ol>
-     *     <li>If the title is "1122" and the keywords are "11 12", then:
-     *         <ul>
-     *             <li>The relevance in the title is 2 (one for "11" and one for "12").</li>
-     *         </ul>
+     *     <li>
+     *         If the title is "1122" and the keywords are "11 12",
+     *         then the relevance in the title is 2 (one for "11" and one for "12").
      *     </li>
-     *     <li>If the title is "111" and the keyword is "11", then:
-     *         <ul>
-     *             <li>The relevance in the title is 1 (one for the occurrence of "11").</li>
-     *         </ul>
+     *     <li>
+     *         If the title is "111" and the keyword is "11",
+     *         then the relevance in the title is 1 (one for the occurrence of "11").
      *     </li>
-     *     <li>Consider a video with title "Java Tutorial", description "Basic to Advanced Java", owner name "John Doe".
-     *         If the search keywords are "Java Advanced", then:
-     *             <ul>
-     *                 <li>The relevance is 3 (one occurrence in the title and two in the description).</li>
-     *             </ul>
+     *     <li>
+     *         Consider a video with title "Java Tutorial", description "Basic to Advanced Java", owner name "John Doe".
+     *         If the search keywords are "Java Advanced",
+     *         then the relevance is 3 (one occurrence in the title and two in the description).
      *     </li>
      * </ol>
      * <p>
