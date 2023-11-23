@@ -112,7 +112,7 @@ public interface VideoService {
     /**
      * Donates one coin to the video.
      * A user can at most donate 2 coins to a video.
-     *
+     * The user can only coin a video if he/she can search it.
      * @param auth the current user's authentication information
      * @param bv   the video's {@code bv}
      * @return whether a coin is successfully donated
