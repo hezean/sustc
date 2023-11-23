@@ -14,14 +14,14 @@ dependencies {
             .takeIf { !it.isEmpty } ?: project(":sustc-api")
     )
     runtimeOnly("org.postgresql:postgresql")
+    implementation("com.opencsv:opencsv:5.8")
 
     implementation(platform("org.springframework.shell:spring-shell-dependencies:2.1.13"))
     implementation("org.springframework.shell:spring-shell-starter")
-
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 }
 
-tasks.withType<BootRun> {
+tasks.withType<JavaExec> {
     standardInput = System.`in`
 }
 

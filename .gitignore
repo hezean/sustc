@@ -16,4 +16,5 @@ build/
 .DS_Store
 
 ### Project Spec Ignored ###
-/sustc-runner/data/
+/sustc-runner/data/postgresql/
+benchmark-*.csv

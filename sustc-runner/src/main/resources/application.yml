@@ -7,4 +7,5 @@ spring:
 ---
 
 benchmark:
-  run-id: 1
+  data-path: data
+  student-mode: true
