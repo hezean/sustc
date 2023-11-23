@@ -97,7 +97,7 @@ public interface VideoService {
      * @param bv the video's {@code bv}
      * @return the index of hotspot chunks (start from 0)
      */
-    Integer getHotspot(String bv);
+    Set<Integer> getHotspot(String bv);
 
     /**
      * Reviews a video by a super admin.
