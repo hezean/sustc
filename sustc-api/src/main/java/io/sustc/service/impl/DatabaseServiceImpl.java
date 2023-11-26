@@ -36,8 +36,8 @@ public class DatabaseServiceImpl implements DatabaseService {
 
     @Override
     public List<Integer> getGroupMembers() {
-        throw new UnsupportedOperationException("TODO: replace this with your own student id");
-        // return Arrays.asList(12210000, 12210001, 12210002);
+//        throw new UnsupportedOperationException("TODO: replace this with your own student id");
+        return Arrays.asList(12210000, 12210001, 12210002);
     }
 
     @Override
