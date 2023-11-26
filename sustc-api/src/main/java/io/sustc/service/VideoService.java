@@ -9,11 +9,24 @@ import java.util.Set;
 public interface VideoService {
 
     /**
-     * Posts a video.
+     * Posts a video. Its commit time shall be {@code java.time.LocalDateTime#now()}.
      *
      * @param auth the current user's authentication information
      * @param req  the video's information
      * @return the video's {@code bv}
+     * @apiNote You may consider the following corner cases:
+     * <ul>
+     * <li>{@code auth} is invalid, as stated in {@code io.sustc.service.UserService#deleteAccount(AuthInfo, Long)}</li>
+     * <li>{@code req} is invalid
+     *  <ul>
+     *      <li>{@code title} is null or empty</li>
+     *      <li>there is another video with same {@code title} and same user</li>
+     *      <li>{@code duration} is less than 10 (so that no chunk can be divided)</li>
+     *      <li>{@code publicTime} is less than {@code java.time.LocalDateTime#now()}</li>
+     *  </ul>
+     * </li>
+     * </ul>
+     * <li>If any of the corner case happened, {@code null} shall be returned.</li>
      */
     String postVideo(AuthInfo auth, PostVideoReq req);
 
@@ -23,15 +36,38 @@ public interface VideoService {
      *
      * @param auth the current user's authentication information
      * @param bv   the video's {@code bv}
+     * @return success or not
+     * @apiNote You may consider the following corner cases:
+     * <ul>
+     * <li>{@code auth} is invalid, as stated in {@code io.sustc.service.UserService#deleteAccount(AuthInfo, Long)}</li>
+     * <li>{@code bv} is invalid (null or empty or not found)</li>
+     * <li>{@code auth} is not the owner of the video nor a superuser</li>
+     * </ul>
+     * <li>If any of the corner case happened, {@code false} shall be returned.</li>
      */
-    void deleteVideo(AuthInfo auth, String bv);
+    boolean deleteVideo(AuthInfo auth, String bv);
 
     /**
+     * 
      * Updates the video's information.
      * Only the owner of the video can update the video's information.
-     * If the video was reviewed before, the review info should be invalidated.
+     * If the video was reviewed before, a new review for the updated video is required.
+     * The duration shall not be modified and therefore the likes, favorites and danmus are not required to update.
      *
+     * @param auth the current user's authentication information
+     * @param bv   the video's {@code bv}
+     * @param req  the new video information
      * @return {@code true} if the video needs to be re-reviewed (was reviewed before), {@code false} otherwise
+     * @apiNote You may consider the following corner cases:
+     * <ul>
+     * <li>{@code auth} is invalid, as stated in {@code io.sustc.service.UserService#deleteAccount(AuthInfo, Long)}</li>
+     * <li>{@code bv} is invalid (null or empty or not found)</li>
+     * <li>{@code auth} is not the owner of the video</li>
+     * <li>{@code req} is invalid, as stated in {@code io.sustc.service.VideoService#postVideo(AuthInfo, PostVideoReq)}</li>
+     * <li>{@code duration} in {@code req} is changed compared to current one</li>
+     * <li>{@code req} is not changed compared to current information</li>
+     * </ul>
+     * <li>If any of the corner case happened, {@code false} shall be returned.</li>
      */
     boolean updateVideoInfo(AuthInfo auth, String bv, PostVideoReq req);
 
@@ -78,6 +114,15 @@ public interface VideoService {
      * @param pageSize the page size, if there are less than {@code pageSize} videos, return all of them
      * @param pageNum  the page number, starts from 1
      * @return a list of video {@code bv}s
+     * @implNote If the requested page is empty, return an empty list
+     * @apiNote You may consider the following corner cases:
+     * <ul>
+     * <li>{@code auth} is invalid, as stated in {@code io.sustc.service.UserService#deleteAccount(AuthInfo, Long)}</li>
+     * <li>{@code keywords} is invalid (null or empty)</li>
+     * <li>{@code pageSize} and/or {@code pageNum} is invalid (any of them <= 0)</li>
+     * <li>the video is not visible to current user</li>
+     * </ul>
+     * <li>If any of the corner case happened, {@code null} shall be returned.</li>
      */
     List<String> searchVideo(AuthInfo auth, String keywords, int pageSize, int pageNum);
 
@@ -87,6 +132,12 @@ public interface VideoService {
      *
      * @param bv the video's {@code bv}
      * @return the average view rate
+     * @apiNote You may consider the following corner cases:
+     * <ul>
+     * <li>{@code bv} is invalid (null or empty or not found)</li>
+     * <li>no one has watched this video</li>
+     * </ul>
+     * <li>If any of the corner case happened, {@code -1} shall be returned.</li>
      */
     double getAverageViewRate(String bv);
 
@@ -96,46 +147,87 @@ public interface VideoService {
      *
      * @param bv the video's {@code bv}
      * @return the index of hotspot chunks (start from 0)
+     * @apiNote You may consider the following corner cases:
+     * <ul>
+     * <li>{@code bv} is invalid (null or empty or not found)</li>
+     * <li>no one has sent danmu on this video</li>
+     * </ul>
+     * <li>If any of the corner case happened, an empty set shall be returned.</li>
      */
     Set<Integer> getHotspot(String bv);
 
     /**
-     * Reviews a video by a super admin.
+     * Reviews a video by a super user.
      * If the video is already reviewed, do not modify the review info.
      *
      * @param auth the current user's authentication information
      * @param bv   the video's {@code bv}
      * @return {@code true} if the video is newly successfully reviewed, {@code false} otherwise
+     * @apiNote You may consider the following corner cases:
+     * <ul>
+     * <li>{@code auth} is invalid, as stated in {@code io.sustc.service.UserService#deleteAccount(AuthInfo, Long)}</li>
+     * <li>{@code bv} is invalid (null or empty or not found)</li>
+     * <li>{@code auth} is not a superuser or he/she is the owner</li>
+     * <li>the video is already reviewed</li>
+     * </ul>
+     * <li>If any of the corner case happened, {@code false} shall be returned.</li>
      */
     boolean reviewVideo(AuthInfo auth, String bv);
 
     /**
-     * Donates one coin to the video.
-     * A user can at most donate 2 coins to a video.
-     * The user can only coin a video if he/she can search it.
+     * Donates one coin to the video. A user can at most donate one coin to a video.
+     * The user can only coin a video if he/she can search it ({@code io.sustc.service.VideoService#searchVideo(AuthInfo, String, int, int)}).
+     * It is not mandatory that the a user shall watch the video first before he/she donates coin to it.
+     * 
      * @param auth the current user's authentication information
      * @param bv   the video's {@code bv}
      * @return whether a coin is successfully donated
+     * @apiNote You may consider the following corner cases:
+     * <ul>
+     * <li>{@code auth} is invalid, as stated in {@code io.sustc.service.UserService#deleteAccount(AuthInfo, Long)}</li>
+     * <li>{@code bv} is invalid (null or empty or not found)</li>
+     * <li>the user cannot search this video or he/she is the owner</li>
+     * <li>the user has no coin or has donated a coin to this video</li>
+     * </ul>
+     * <li>If any of the corner case happened, {@code false} shall be returned.</li>
      */
     boolean coinVideo(AuthInfo auth, String bv);
 
     /**
      * Likes a video.
-     * The user can only like a video if he/she can search it.
+     * The user can only like a video if he/she can search it ({@code io.sustc.service.VideoService#searchVideo(AuthInfo, String, int, int)}).
      * If the user already liked the video, the operation will cancel the like.
+     * It is not mandatory that the a user shall watch the video first before he/she likes to it.
      *
      * @param auth the current user's authentication information
      * @param bv   the video's {@code bv}
+     * @return the like state of the user to this video after this operation
+     * @apiNote You may consider the following corner cases:
+     * <ul>
+     * <li>{@code auth} is invalid, as stated in {@code io.sustc.service.UserService#deleteAccount(AuthInfo, Long)}</li>
+     * <li>{@code bv} is invalid (null or empty or not found)</li>
+     * <li>the user cannot search this video or the user is the video owner</li>
+     * </ul>
+     * <li>If any of the corner case happened, {@code false} shall be returned.</li>
      */
-    void likeVideo(AuthInfo auth, String bv);
+    boolean likeVideo(AuthInfo auth, String bv);
 
     /**
-     * Collects a video.
+     * Collects / favorite a video.
      * The user can only collect a video if he/she can search it.
      * If the user already collected the video, the operation will cancel the collection.
+     * It is not mandatory that the a user shall watch the video first before he/she collects coin to it.
      *
      * @param auth the current user's authentication information
      * @param bv   the video's {@code bv}
+     * @return the collect state of the user to this video after this operation
+     * @apiNote You may consider the following corner cases:
+     * <ul>
+     * <li>{@code auth} is invalid, as stated in {@code io.sustc.service.UserService#deleteAccount(AuthInfo, Long)}</li>
+     * <li>{@code bv} is invalid (null or empty or not found)</li>
+     * <li>the user cannot search this video or the user is the video owner</li>
+     * </ul>
+     * <li>If any of the corner case happened, {@code false} shall be returned.</li>
      */
-    void collectVideo(AuthInfo auth, String bv);
+    boolean collectVideo(AuthInfo auth, String bv);
 }
