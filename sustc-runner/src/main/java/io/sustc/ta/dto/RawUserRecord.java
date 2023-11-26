@@ -1,11 +1,8 @@
 package io.sustc.ta.dto;
 
 import com.opencsv.bean.CsvBindByName;
-import io.sustc.dto.DanmuRecord;
 import io.sustc.dto.UserRecord;
 import lombok.Data;
-
-import java.sql.Timestamp;
 
 @Data
 public class RawUserRecord {

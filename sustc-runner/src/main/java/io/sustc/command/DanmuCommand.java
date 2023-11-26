@@ -29,11 +29,12 @@ public class DanmuCommand {
             Float time
     ) {
         val auth = AuthInfo.builder()
-                .mid(mid)
-                .password(pwd)
-                .qq(qq)
-                .wechat(wechat)
-                .build();
+                           .mid(mid)
+                           .password(pwd)
+                           .qq(qq)
+                           .wechat(wechat)
+                           .build();
+                           
         danmuService.sendDanmu(auth, bv, content, time);
     }
 
@@ -56,11 +57,12 @@ public class DanmuCommand {
             Long id
     ) {
         val auth = AuthInfo.builder()
-                .mid(mid)
-                .password(pwd)
-                .qq(qq)
-                .wechat(wechat)
-                .build();
+                           .mid(mid)
+                           .password(pwd)
+                           .qq(qq)
+                           .wechat(wechat)
+                           .build();
+
         danmuService.likeDanmu(auth, id);
     }
 }

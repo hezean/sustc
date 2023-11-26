@@ -1,6 +1,9 @@
 package io.sustc.command;
 
+import io.sustc.dto.AuthInfo;
 import io.sustc.service.RecommenderService;
+import lombok.val;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.shell.standard.ShellComponent;
@@ -26,11 +29,21 @@ public class RecommenderCommand {
 
     @ShellMethod("rec user")
     public List<String> recommendVideosForUser(
-            Long mid,
+            @ShellOption(defaultValue = ShellOption.NULL) Long mid,
+            @ShellOption(defaultValue = ShellOption.NULL) String pwd,
+            @ShellOption(defaultValue = ShellOption.NULL) String qq,
+            @ShellOption(defaultValue = ShellOption.NULL) String wechat,
             @ShellOption(defaultValue = "1") Integer pageSize,
             @ShellOption(defaultValue = "10") Integer pageNum
     ) {
-        return recommenderService.recommendVideosForUser(mid, pageSize, pageNum);
+        val auth = AuthInfo.builder()
+                           .mid(mid)
+                           .password(pwd)
+                           .qq(qq)
+                           .wechat(wechat)
+                           .build();
+                           
+        return recommenderService.recommendVideosForUser(auth, pageSize, pageNum);
     }
 
     @ShellMethod("rec video")
@@ -40,10 +53,20 @@ public class RecommenderCommand {
 
     @ShellMethod("rec friends")
     public List<Long> recommendFriends(
-            Long mid,
+            @ShellOption(defaultValue = ShellOption.NULL) Long mid,
+            @ShellOption(defaultValue = ShellOption.NULL) String pwd,
+            @ShellOption(defaultValue = ShellOption.NULL) String qq,
+            @ShellOption(defaultValue = ShellOption.NULL) String wechat,
             @ShellOption(defaultValue = "1") Integer pageSize,
             @ShellOption(defaultValue = "10") Integer pageNum
     ) {
-        return recommenderService.recommendFriends(mid, pageSize, pageNum);
+        val auth = AuthInfo.builder()
+                           .mid(mid)
+                           .password(pwd)
+                           .qq(qq)
+                           .wechat(wechat)
+                           .build();
+
+        return recommenderService.recommendFriends(auth, pageSize, pageNum);
     }
 }

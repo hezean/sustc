@@ -12,20 +12,15 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.shell.Input;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
 // TA works
 import io.sustc.ta.DataGenerateService;
-import io.sustc.ta.dto.RawDanmuRecord;
-import io.sustc.ta.dto.RawUserRecord;
-import io.sustc.ta.dto.RawVideoRecord;
 
 
 @Service

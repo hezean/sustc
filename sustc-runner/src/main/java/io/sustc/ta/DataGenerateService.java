@@ -7,7 +7,6 @@ import io.sustc.ta.dto.RawVideoRecord;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.stream.Stream;
 import java.util.List;
 
 public interface DataGenerateService {

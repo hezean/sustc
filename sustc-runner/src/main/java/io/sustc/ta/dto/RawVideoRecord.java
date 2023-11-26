@@ -4,8 +4,6 @@ import com.opencsv.bean.AbstractCsvConverter;
 import com.opencsv.bean.CsvBindAndSplitByName;
 import com.opencsv.bean.CsvBindByName;
 import com.opencsv.exceptions.CsvDataTypeMismatchException;
-import io.sustc.dto.UserRecord;
-import io.sustc.dto.VideoRecord;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.val;

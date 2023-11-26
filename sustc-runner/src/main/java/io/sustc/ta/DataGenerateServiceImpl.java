@@ -5,7 +5,6 @@ import com.opencsv.RFC4180Parser;
 import com.opencsv.RFC4180ParserBuilder;
 import com.opencsv.bean.CsvToBeanBuilder;
 import com.opencsv.exceptions.CsvDataTypeMismatchException;
-import io.sustc.dto.DanmuRecord;
 import io.sustc.ta.dto.RawDanmuRecord;
 import io.sustc.ta.dto.RawUserRecord;
 import io.sustc.ta.dto.RawVideoRecord;
@@ -16,11 +15,7 @@ import org.springframework.stereotype.Service;
 
 import javax.sql.DataSource;
 import java.io.*;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 
 /**

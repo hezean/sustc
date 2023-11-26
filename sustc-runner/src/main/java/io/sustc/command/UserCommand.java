@@ -11,8 +11,6 @@ import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
 
-import java.util.List;
-
 @ShellComponent
 @ConditionalOnBean(UserService.class)
 public class UserCommand {
@@ -31,14 +29,14 @@ public class UserCommand {
             @ShellOption(defaultValue = ShellOption.NULL) String sign
     ) {
         val req = RegisterUserReq.builder()
-                .password(password)
-                .qq(qq)
-                .wechat(wechat)
-                .name(name)
-                .sex(sex)
-                .birthday(birthday)
-                .sign(sign)
-                .build();
+                                 .password(password)
+                                 .qq(qq)
+                                 .wechat(wechat)
+                                 .name(name)
+                                 .sex(sex)
+                                 .birthday(birthday)
+                                 .sign(sign)
+                                 .build();
 
         return userService.register(req);
     }
@@ -52,11 +50,11 @@ public class UserCommand {
             @ShellOption(defaultValue = ShellOption.NULL) Long toDeleteMid
     ) {
         val auth = AuthInfo.builder()
-                .mid(mid)
-                .password(pwd)
-                .qq(qq)
-                .wechat(wechat)
-                .build();
+                           .mid(mid)
+                           .password(pwd)
+                           .qq(qq)
+                           .wechat(wechat)
+                           .build();
 
         userService.deleteAccount(auth, toDeleteMid);
     }
@@ -70,11 +68,11 @@ public class UserCommand {
             Long followeeMid
     ) {
         val auth = AuthInfo.builder()
-                .mid(mid)
-                .password(pwd)
-                .qq(qq)
-                .wechat(wechat)
-                .build();
+                           .mid(mid)
+                           .password(pwd)
+                           .qq(qq)
+                           .wechat(wechat)
+                           .build();
 
         userService.follow(auth, followeeMid);
     }
