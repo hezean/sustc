@@ -213,7 +213,7 @@ public interface VideoService {
     boolean likeVideo(AuthInfo auth, String bv);
 
     /**
-     * Collects / favorite a video.
+     * Collects a video.
      * The user can only collect a video if he/she can search it.
      * If the user already collected the video, the operation will cancel the collection.
      * It is not mandatory that the user shall watch the video first before he/she collects coin to it.
