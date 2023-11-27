@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:15432/sustc  # change this to your own jdbc url
+    url: jdbc:postgresql://localhost:5432/sustc  # change this to your own jdbc url
     username: sustc  # change this to your own username (avoid using a superuser)
     password: sustc  # change this to your own password
 

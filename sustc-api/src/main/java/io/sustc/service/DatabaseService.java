@@ -17,6 +17,7 @@ public interface DatabaseService {
 
     /**
      * Imports data to an empty database.
+     * Invalid data will not be provided.
      *
      * @param danmuRecords danmu records parsed from csv
      * @param userRecords  user records parsed from csv
@@ -42,7 +43,7 @@ public interface DatabaseService {
      *
      * @param a the first number
      * @param b the second number
-     * @return the sum of all student-ids
+     * @return the sum of two numbers
      */
     Integer sum(int a, int b);
 }

@@ -19,7 +19,7 @@ public class DanmuCommand {
     private DanmuService danmuService;
 
     @ShellMethod("danmu send")
-    public void sendDanmu(
+    public long sendDanmu(
             @ShellOption(defaultValue = ShellOption.NULL) Long mid,
             @ShellOption(defaultValue = ShellOption.NULL) String pwd,
             @ShellOption(defaultValue = ShellOption.NULL) String qq,
@@ -34,7 +34,8 @@ public class DanmuCommand {
                 .qq(qq)
                 .wechat(wechat)
                 .build();
-        danmuService.sendDanmu(auth, bv, content, time);
+
+        return danmuService.sendDanmu(auth, bv, content, time);
     }
 
     @ShellMethod("danmu display")
@@ -48,7 +49,7 @@ public class DanmuCommand {
     }
 
     @ShellMethod("danmu like")
-    public void likeDanmu(
+    public boolean likeDanmu(
             @ShellOption(defaultValue = ShellOption.NULL) Long mid,
             @ShellOption(defaultValue = ShellOption.NULL) String pwd,
             @ShellOption(defaultValue = ShellOption.NULL) String qq,
@@ -61,6 +62,7 @@ public class DanmuCommand {
                 .qq(qq)
                 .wechat(wechat)
                 .build();
-        danmuService.likeDanmu(auth, id);
+
+        return danmuService.likeDanmu(auth, id);
     }
 }

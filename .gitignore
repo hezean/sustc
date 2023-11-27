@@ -6,9 +6,10 @@ build/
 !**/src/test/**/build/
 
 ### IDE ###
+*.iml
 .idea/
 .vscode/
-*.iml
+*/bin/
 
 ### Misc ###
 *.jar

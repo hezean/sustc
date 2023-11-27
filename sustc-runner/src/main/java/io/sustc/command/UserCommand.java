@@ -11,8 +11,6 @@ import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
 
-import java.util.List;
-
 @ShellComponent
 @ConditionalOnBean(UserService.class)
 public class UserCommand {
@@ -62,7 +60,7 @@ public class UserCommand {
     }
 
     @ShellMethod("user follow")
-    public void follow(
+    public boolean follow(
             @ShellOption(defaultValue = ShellOption.NULL) Long mid,
             @ShellOption(defaultValue = ShellOption.NULL) String pwd,
             @ShellOption(defaultValue = ShellOption.NULL) String qq,
@@ -76,7 +74,7 @@ public class UserCommand {
                 .wechat(wechat)
                 .build();
 
-        userService.follow(auth, followeeMid);
+        return userService.follow(auth, followeeMid);
     }
 
     @ShellMethod("user info")
