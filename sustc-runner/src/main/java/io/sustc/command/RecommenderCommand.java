@@ -37,12 +37,12 @@ public class RecommenderCommand {
             @ShellOption(defaultValue = "10") Integer pageNum
     ) {
         val auth = AuthInfo.builder()
-                           .mid(mid)
-                           .password(pwd)
-                           .qq(qq)
-                           .wechat(wechat)
-                           .build();
-                           
+                .mid(mid)
+                .password(pwd)
+                .qq(qq)
+                .wechat(wechat)
+                .build();
+
         return recommenderService.recommendVideosForUser(auth, pageSize, pageNum);
     }
 
@@ -61,11 +61,11 @@ public class RecommenderCommand {
             @ShellOption(defaultValue = "10") Integer pageNum
     ) {
         val auth = AuthInfo.builder()
-                           .mid(mid)
-                           .password(pwd)
-                           .qq(qq)
-                           .wechat(wechat)
-                           .build();
+                .mid(mid)
+                .password(pwd)
+                .qq(qq)
+                .wechat(wechat)
+                .build();
 
         return recommenderService.recommendFriends(auth, pageSize, pageNum);
     }

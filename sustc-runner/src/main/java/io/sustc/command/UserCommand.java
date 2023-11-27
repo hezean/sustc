@@ -29,14 +29,14 @@ public class UserCommand {
             @ShellOption(defaultValue = ShellOption.NULL) String sign
     ) {
         val req = RegisterUserReq.builder()
-                                 .password(password)
-                                 .qq(qq)
-                                 .wechat(wechat)
-                                 .name(name)
-                                 .sex(sex)
-                                 .birthday(birthday)
-                                 .sign(sign)
-                                 .build();
+                .password(password)
+                .qq(qq)
+                .wechat(wechat)
+                .name(name)
+                .sex(sex)
+                .birthday(birthday)
+                .sign(sign)
+                .build();
 
         return userService.register(req);
     }
@@ -50,17 +50,17 @@ public class UserCommand {
             @ShellOption(defaultValue = ShellOption.NULL) Long toDeleteMid
     ) {
         val auth = AuthInfo.builder()
-                           .mid(mid)
-                           .password(pwd)
-                           .qq(qq)
-                           .wechat(wechat)
-                           .build();
+                .mid(mid)
+                .password(pwd)
+                .qq(qq)
+                .wechat(wechat)
+                .build();
 
         userService.deleteAccount(auth, toDeleteMid);
     }
 
     @ShellMethod("user follow")
-    public void follow(
+    public boolean follow(
             @ShellOption(defaultValue = ShellOption.NULL) Long mid,
             @ShellOption(defaultValue = ShellOption.NULL) String pwd,
             @ShellOption(defaultValue = ShellOption.NULL) String qq,
@@ -68,13 +68,13 @@ public class UserCommand {
             Long followeeMid
     ) {
         val auth = AuthInfo.builder()
-                           .mid(mid)
-                           .password(pwd)
-                           .qq(qq)
-                           .wechat(wechat)
-                           .build();
+                .mid(mid)
+                .password(pwd)
+                .qq(qq)
+                .wechat(wechat)
+                .build();
 
-        userService.follow(auth, followeeMid);
+        return userService.follow(auth, followeeMid);
     }
 
     @ShellMethod("user info")

@@ -8,15 +8,15 @@ public interface RecommenderService {
 
     /**
      * Recommends a list of top 5 similar videos for a video.
-     * The similarity is defined as the number of users (in all database) who have watched both videos.
+     * The similarity is defined as the number of users (in the database) who have watched both videos.
      *
      * @param bv the current video
      * @return a list of video {@code bv}s
      * @apiNote You may consider the following corner cases:
      * <ul>
-     * <li>{@code bv} is invalid (null or empty or not found)</li>
+     *   <li>{@code bv} is invalid (null or empty or not found)</li>
      * </ul>
-     * <li>If any of the corner case happened, {@code null} shall be returned.</li>
+     * If any of the corner case happened, {@code null} shall be returned.
      */
     List<String> recommendNextVideo(String bv);
 
@@ -24,40 +24,41 @@ public interface RecommenderService {
      * Recommends videos for anonymous users, based on the popularity.
      * Evaluate the video's popularity from the following aspects:
      * <ol>
-     *     <li>"like": the rate of watched users who also liked this video</li>
-     *     <li>"coin": the rate of watched users who also donated coin to this video</li>
-     *     <li>"fav": the rate of watched users who also collected this video</li>
-     *     <li>"danmu": the average number of danmus sent by one watched user</li>
-     *     <li>"finish": the average video watched percentage of one watched user</li>
+     *   <li>"like": the rate of watched users who also liked this video</li>
+     *   <li>"coin": the rate of watched users who also donated coin to this video</li>
+     *   <li>"fav": the rate of watched users who also collected this video</li>
+     *   <li>"danmu": the average number of danmus sent by one watched user</li>
+     *   <li>"finish": the average video watched percentage of one watched user</li>
      * </ol>
      * The recommendation score can be calculated as:
      * <pre>
-     *     score = like + coin + fav + danmu + finish
+     *   score = like + coin + fav + danmu + finish
      * </pre>
      *
      * @param pageSize the page size, if there are less than {@code pageSize} videos, return all of them
      * @param pageNum  the page number, starts from 1
      * @return a list of video {@code bv}s, sorted by the recommendation score
      * @implNote 
-     * Since the users can like / coin / favorite a video without watching it, the rates of these values cannot exceed 1.
-     * If no one have watched this video, all of the five scores shall be 0.
-     * If the requested page is empty, return an empty list
+     * Since the users can't like/coin/favorite a video without watching it, the rates of these values cannot exceed 1.
+     * If no one has watched this video, all the five scores shall be 0.
+     * If the requested page is empty, return an empty list.
      * @apiNote You may consider the following corner cases:
      * <ul>
-     * <li>{@code pageSize} and/or {@code pageNum} is invalid (any of them <= 0)</li>
+     *   <li>{@code pageSize} and/or {@code pageNum} is invalid (any of them <= 0)</li>
      * </ul>
-     * <li>If any of the corner case happened, {@code null} shall be returned.</li>
+     * If any of the corner case happened, {@code null} shall be returned.
      */
     List<String> generalRecommendations(int pageSize, int pageNum);
 
     /**
      * Recommends videos for a user, restricted on their interests.
-     * The user's interests are defined as the videos that the both user's followers and his/her followees have watched, filter out the videos that the user has already watched.
+     * The user's interests are defined as the videos that the both user's followers and his/her followees have watched,
+     * filter out the videos that the user has already watched.
      * Sort the videos by:
      * <ol>
-     *     <li>The number of friends who have watched the video</li>
-     *     <li>The video owner's level</li>
-     *     <li>The video's public time (newer videos are preferred)</li>
+     *   <li>The number of friends who have watched the video</li>
+     *   <li>The video owner's level</li>
+     *   <li>The video's public time (newer videos are preferred)</li>
      * </ol>
      *
      * @param auth     the current user's authentication information to be recommended
@@ -65,14 +66,14 @@ public interface RecommenderService {
      * @param pageNum  the page number, starts from 1
      * @return a list of video {@code bv}s
      * @implNote
-     * If the current user's interest is empty, return {@code io.sustc.service.RecommenderService#generalRecommendations(int, int)}.
+     * If the current user's interest is empty, return {@link io.sustc.service.RecommenderService#generalRecommendations(int, int)}.
      * If the requested page is empty, return an empty list
      * @apiNote You may consider the following corner cases:
      * <ul>
-     * <li>{@code auth} is invalid, as stated in {@code io.sustc.service.UserService#deleteAccount(AuthInfo, Long)}</li>
-     * <li>{@code pageSize} and/or {@code pageNum} is invalid (any of them <= 0)</li>
+     *   <li>{@code auth} is invalid, as stated in {@link io.sustc.service.UserService#deleteAccount(AuthInfo, long)}</li>
+     *   <li>{@code pageSize} and/or {@code pageNum} is invalid (any of them <= 0)</li>
      * </ul>
-     * <li>If any of the corner case happened, {@code null} shall be returned.</li>
+     * If any of the corner case happened, {@code null} shall be returned.
      */
     List<String> recommendVideosForUser(AuthInfo auth, int pageSize, int pageNum);
 
@@ -82,17 +83,17 @@ public interface RecommenderService {
      * Sort the users by the number of common followings, if two users have the same number of common followings,
      * sort them by their {@code level}.
      *
-     * @param mid      the user to be recommended
+     * @param auth     the current user's authentication information to be recommended
      * @param pageSize the page size, if there are less than {@code pageSize} users, return all of them
      * @param pageNum  the page number, starts from 1
      * @return a list of {@code mid}s of the recommended users
      * @implNote If the requested page is empty, return an empty list
      * @apiNote You may consider the following corner cases:
      * <ul>
-     * <li>{@code auth} is invalid, as stated in {@code io.sustc.service.UserService#deleteAccount(AuthInfo, Long)}</li>
-     * <li>{@code pageSize} and/or {@code pageNum} is invalid (any of them <= 0)</li>
+     *   <li>{@code auth} is invalid, as stated in {@link io.sustc.service.UserService#deleteAccount(AuthInfo, long)}</li>
+     *   <li>{@code pageSize} and/or {@code pageNum} is invalid (any of them <= 0)</li>
      * </ul>
-     * <li>If any of the corner case happened, {@code null} shall be returned.</li>
+     * If any of the corner case happened, {@code null} shall be returned.
      */
     List<Long> recommendFriends(AuthInfo auth, int pageSize, int pageNum);
 }

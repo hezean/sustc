@@ -49,7 +49,7 @@ public class VideoCommand {
     }
 
     @ShellMethod("video delete")
-    public void deleteVideo(
+    public boolean deleteVideo(
             @ShellOption(defaultValue = ShellOption.NULL) Long mid,
             @ShellOption(defaultValue = ShellOption.NULL) String pwd,
             @ShellOption(defaultValue = ShellOption.NULL) String qq,
@@ -63,7 +63,7 @@ public class VideoCommand {
                 .wechat(wechat)
                 .build();
 
-        videoService.deleteVideo(auth, bv);
+        return videoService.deleteVideo(auth, bv);
     }
 
     @ShellMethod("video update")
@@ -161,7 +161,7 @@ public class VideoCommand {
     }
 
     @ShellMethod("video like")
-    public void likeVideo(
+    public boolean likeVideo(
             @ShellOption(defaultValue = ShellOption.NULL) Long mid,
             @ShellOption(defaultValue = ShellOption.NULL) String pwd,
             @ShellOption(defaultValue = ShellOption.NULL) String qq,
@@ -175,11 +175,11 @@ public class VideoCommand {
                 .wechat(wechat)
                 .build();
 
-        videoService.likeVideo(auth, bv);
+        return videoService.likeVideo(auth, bv);
     }
 
     @ShellMethod("video collect")
-    public void collectVideo(
+    public boolean collectVideo(
             @ShellOption(defaultValue = ShellOption.NULL) Long mid,
             @ShellOption(defaultValue = ShellOption.NULL) String pwd,
             @ShellOption(defaultValue = ShellOption.NULL) String qq,
@@ -193,6 +193,6 @@ public class VideoCommand {
                 .wechat(wechat)
                 .build();
 
-        videoService.collectVideo(auth, bv);
+        return videoService.collectVideo(auth, bv);
     }
 }

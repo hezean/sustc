@@ -15,11 +15,11 @@ dependencies {
     )
     runtimeOnly("org.postgresql:postgresql")
     implementation("com.opencsv:opencsv:5.8")
+    implementation("commons-io:commons-io:2.15.0")
 
     implementation(platform("org.springframework.shell:spring-shell-dependencies:2.1.13"))
     implementation("org.springframework.shell:spring-shell-starter")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-    implementation("commons-io:commons-io:2.15.0")
 }
 
 tasks.withType<JavaExec> {
@@ -39,4 +39,3 @@ tasks.withType<BootJar> {
     archiveFileName = "sustc-runner.jar"
     destinationDirectory = File("$rootDir/run")
 }
-
