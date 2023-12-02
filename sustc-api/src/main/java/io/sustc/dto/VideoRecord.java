@@ -1,12 +1,7 @@
 package io.sustc.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.val;
-
 import java.sql.Timestamp;
-import java.util.List;
-import java.util.regex.Pattern;
 
 @Data
 public class VideoRecord {

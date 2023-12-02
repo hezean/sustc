@@ -28,7 +28,12 @@ public class UserRecord {
     /**
      * The user's level
      */
-    private short level;
+    private int level;
+
+    /**
+     * The user's current number of coins
+     */
+    private int coin;
 
     /**
      * The user's personal sign, can be empty
