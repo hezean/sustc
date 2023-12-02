@@ -1,6 +1,5 @@
 package io.sustc.dto;
 
-import com.opencsv.bean.CsvBindByName;
 import lombok.Data;
 
 import java.sql.Timestamp;
@@ -9,40 +8,34 @@ import java.sql.Timestamp;
 public class DanmuRecord {
 
     /**
-     * The danmu's video bv.
+     * The danmu's video {@code bv}.
      */
-    @CsvBindByName(column = "BV")
     private String bv;
 
     /**
-     * The danmu's sender mid.
+     * The danmu's sender {@code mid}.
      */
-    @CsvBindByName(column = "Mid")
-    private Long mid;
+    private long mid;
 
     /**
      * The danmu's display time (in seconds) since the video starts.
      */
-    @CsvBindByName(column = "Time")
-    private Float time;
+    private float time;
 
     /**
      * The danmu's content.
      * The content has not been filtered.
      * You need to clean the "dirty words" when importing.
      */
-    @CsvBindByName(column = "Content")
     private String content;
 
     /**
      * The danmu's post time.
      */
-    @CsvBindByName(column = "Post Time")
     private Timestamp postTime;
 
     /**
-     * The users' mid who liked this danmu.
+     * The users' {@code mid} who liked this danmu.
      */
-    @CsvBindByName(column = "Liked By")
-    private Long[] likedBy;
+    private long[] likedBy;
 }
