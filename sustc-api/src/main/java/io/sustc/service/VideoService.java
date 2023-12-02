@@ -120,7 +120,6 @@ public interface VideoService {
      *   <li>{@code auth} is invalid, as stated in {@link io.sustc.service.UserService#deleteAccount(AuthInfo, long)}</li>
      *   <li>{@code keywords} is invalid (null or empty)</li>
      *   <li>{@code pageSize} and/or {@code pageNum} is invalid (any of them <= 0)</li>
-     *   <li>the video is not visible to current user</li>
      * </ul>
      * If any of the corner case happened, {@code null} shall be returned.
      */
