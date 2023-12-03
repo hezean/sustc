@@ -28,7 +28,7 @@ public class UserRecord {
     /**
      * The user's level
      */
-    private int level;
+    private short level;
 
     /**
      * The user's current number of coins
