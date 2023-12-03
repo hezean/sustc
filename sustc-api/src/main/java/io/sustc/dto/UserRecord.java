@@ -1,43 +1,69 @@
 package io.sustc.dto;
 
-import com.opencsv.bean.CsvBindByName;
 import lombok.Data;
 
 @Data
 public class UserRecord {
 
-    @CsvBindByName(column = "Mid")
-    private Long mid;
+    /**
+     * The user's ID
+     */
+    private long mid;
 
-    @CsvBindByName(column = "Name")
+    /**
+     * The user's name
+     */
     private String name;
 
-    @CsvBindByName(column = "Sex")
+    /**
+     * The user's sex
+     */
     private String sex;
 
-    @CsvBindByName(column = "Birthday")
+    /**
+     * The user's birthday
+     */
     private String birthday;
 
-    @CsvBindByName(column = "Level")
-    private Short level;
+    /**
+     * The user's level
+     */
+    private short level;
 
-    @CsvBindByName(column = "Sign")
+    /**
+     * The user's current number of coins
+     */
+    private int coin;
+
+    /**
+     * The user's personal sign, can be null or empty
+     */
     private String sign;
 
-    @CsvBindByName(column = "following")
-    private Long[] following;
-
-    @CsvBindByName(column = "identity")
+    /**
+     * The user's identity
+     */
     private Identity identity;
 
-    @CsvBindByName(column = "password")
+    /**
+     * The user's password
+     */
     private String password;
 
-    @CsvBindByName(column = "qq")
+    /**
+     * The user's qq, may be null or empty
+     */
     private String qq;
 
-    @CsvBindByName(column = "wechat")
+    /**
+     * The user's wechat, may be null or empty
+     */
     private String wechat;
+
+    /**
+     * The users' {@code mid}s who followed this user
+     */
+    private long[] following;
 
     public enum Identity {
         USER,
