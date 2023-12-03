@@ -36,7 +36,7 @@ public class UserRecord {
     private int coin;
 
     /**
-     * The user's personal sign, can be empty
+     * The user's personal sign, can be null or empty
      */
     private String sign;
 
