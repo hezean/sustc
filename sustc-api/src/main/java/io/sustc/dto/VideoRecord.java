@@ -12,7 +12,7 @@ public class VideoRecord {
     private String bv;
 
     /**
-     * The title of this video
+     * The title of this video with length >= 1, the video titles of an owner cannot be the same
      */
     private String title;
 

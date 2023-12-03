@@ -51,12 +51,12 @@ public class UserRecord {
     private String password;
 
     /**
-     * The user's qq
+     * The user's qq, may be null or empty
      */
     private String qq;
 
     /**
-     * The user's wechat
+     * The user's wechat, may be null or empty
      */
     private String wechat;
 
