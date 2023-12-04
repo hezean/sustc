@@ -5,13 +5,17 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.sql.Timestamp;
 
+/**
+ * The post video request information class
+ */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PostVideoReq {
+public class PostVideoReq implements Serializable {
 
     /**
      * The video's title.

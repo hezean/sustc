@@ -9,7 +9,18 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD})
 public @interface BenchmarkStep {
 
+    /**
+     * Task ID.
+     */
     int order();
 
+    /**
+     * Timeout in minutes.
+     */
+    int timeout() default 5;
+
+    /**
+     * Description of the task.
+     */
     String description() default "";
 }

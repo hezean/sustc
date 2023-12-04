@@ -13,6 +13,8 @@ public class BenchmarkResult {
 
     private Integer id;
 
+    private Long caseCnt;
+
     private Long passCnt;
 
     private Long elapsedTime;

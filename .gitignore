@@ -15,6 +15,7 @@ build/
 *.jar
 *.log
 .DS_Store
+*.ser
 
 ### Project Spec Ignored ###
 /sustc-runner/data/postgresql/

@@ -66,7 +66,7 @@ public class BenchmarkRunner implements ShellApplicationRunner {
                     val executor = Executors.newCachedThreadPool();
                     val future = executor.submit(() -> (BenchmarkResult) method.invoke(benchmarkService));
                     try {
-                        val res = future.get(BenchmarkConstants.TIMEOUT_MINUTES, TimeUnit.MINUTES);
+                        val res = future.get(method.getAnnotation(BenchmarkStep.class).timeout(), TimeUnit.MINUTES);
                         res.setId(method.getAnnotation(BenchmarkStep.class).order());
                         return res;
                     } catch (TimeoutException e) {
@@ -78,7 +78,7 @@ public class BenchmarkRunner implements ShellApplicationRunner {
                         return BenchmarkResult.builder()
                                 .id(method.getAnnotation(BenchmarkStep.class).order())
                                 .passCnt(0L)
-                                .elapsedTime(TimeUnit.MINUTES.toNanos(BenchmarkConstants.TIMEOUT_MINUTES))
+                                .elapsedTime(TimeUnit.MINUTES.toNanos(method.getAnnotation(BenchmarkStep.class).timeout()))
                                 .build();
                     } catch (Exception e) {
                         throw new RuntimeException(e);
