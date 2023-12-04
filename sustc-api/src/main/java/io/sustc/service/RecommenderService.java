@@ -14,7 +14,7 @@ public interface RecommenderService {
      * @return a list of video {@code bv}s
      * @apiNote You may consider the following corner cases:
      * <ul>
-     *   <li>{@code bv} is invalid (null or empty or not found)</li>
+     *   <li>cannot find a video corresponding to the {@code bv}</li>
      * </ul>
      * If any of the corner case happened, {@code null} shall be returned.
      */

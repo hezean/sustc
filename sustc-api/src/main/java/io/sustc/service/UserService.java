@@ -27,11 +27,11 @@ public interface UserService {
      * Deletes a user.
      *
      * @param auth indicates the current user
-     * @param mid  the user's {@code mid} to be deleted
+     * @param mid  the user to be deleted
      * @return operation success or not
      * @apiNote You may consider the following corner cases:
      * <ul>
-     *   <li>{@code mid} is invalid (<= 0 or do not exist)</li>
+     *   <li>cannot find a user corresponding to the {@code mid}</li>
      *   <li>the {@code auth} is invalid
      *     <ul>
      *       <li>both {@code qq} and {@code wechat} are non-empty while they do not correspond to same user</li>
@@ -55,7 +55,7 @@ public interface UserService {
      * @apiNote You may consider the following corner cases:
      * <ul>
      *   <li>{@code auth} is invalid, as stated in {@link io.sustc.service.UserService#deleteAccount(AuthInfo, long)}</li>
-     *   <li>{@code followeeMid} is invalid (<= 0 or not found)</li>
+     *   <li>cannot find a user corresponding to the {@code followeeMid}</li>
      * </ul>
      * If any of the corner case happened, {@code false} shall be returned.
      */
@@ -68,7 +68,7 @@ public interface UserService {
      * @return the personal information of given {@code mid}
      * @apiNote You may consider the following corner cases:
      * <ul>
-     *   <li>{@code mid} is invalid (<= 0 or not found)</li>
+     *   <li>cannot find a user corresponding to the {@code mid}</li>
      * </ul>
      * If any of the corner case happened, {@code null} shall be returned.
      */
