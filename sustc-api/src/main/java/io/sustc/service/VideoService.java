@@ -133,7 +133,7 @@ public interface VideoService {
      * @return the average view rate
      * @apiNote You may consider the following corner cases:
      * <ul>
-     *   <li>cannot find a video corresponding to the {@code bv} is invalid</li>
+     *   <li>cannot find a video corresponding to the {@code bv}</li>
      *   <li>no one has watched this video</li>
      * </ul>
      * If any of the corner case happened, {@code -1} shall be returned.
