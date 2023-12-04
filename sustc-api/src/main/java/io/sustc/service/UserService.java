@@ -24,12 +24,10 @@ public interface UserService {
     long register(RegisterUserReq req);
 
     /**
-     * Deletes a user. If {@code auth} is a super user, {@code mid} can be any user except super users.
-     * (A super user cannot delete his/her account.)
-     * If {@code auth} is a regular user, {@code mid} can only be his/her {@code mid}.
+     * Deletes a user.
      *
      * @param auth indicates the current user
-     * @param mid  the user to be deleted
+     * @param mid  the user's {@code mid} to be deleted
      * @return operation success or not
      * @apiNote You may consider the following corner cases:
      * <ul>
@@ -41,6 +39,7 @@ public interface UserService {
      *     </ul>
      *   </li>
      *   <li>the current user is a regular user while the {@code mid} is not his/hers</li>
+     *   <li>the current user is a super user while the {@code mid} is neither a regular user's {@code mid} nor his/hers</li>
      * </ul>
      * If any of the corner case happened, {@code false} shall be returned.
      */
