@@ -1,0 +1,3 @@
+Please download the latest released data from {{online-benchmark-url}}.
+
+Then unzip the file, and move all *sub folders* to this folder (data/).
