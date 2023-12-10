@@ -61,7 +61,7 @@ public class UserRecord {
     private String wechat;
 
     /**
-     * The users' {@code mid}s who followed this user
+     * The users' {@code mid}s who are followed by this user
      */
     private long[] following;
 
