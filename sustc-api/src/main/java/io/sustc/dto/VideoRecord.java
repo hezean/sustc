@@ -1,90 +1,89 @@
 package io.sustc.dto;
 
-import com.opencsv.bean.AbstractCsvConverter;
-import com.opencsv.bean.CsvBindAndSplitByName;
-import com.opencsv.bean.CsvBindByName;
-import com.opencsv.exceptions.CsvDataTypeMismatchException;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.val;
 
+import java.io.Serializable;
 import java.sql.Timestamp;
-import java.util.List;
-import java.util.regex.Pattern;
 
+/**
+ * The video record used for data import
+ * @implNote You may implement your own {@link java.lang.Object#toString()} since the default one in {@link lombok.Data} prints all array values.
+ */
 @Data
-public class VideoRecord {
+public class VideoRecord implements Serializable {
 
-    @CsvBindByName(column = "BV")
+    /**
+     * The BV code of this video
+     */
     private String bv;
 
-    @CsvBindByName(column = "Title")
+    /**
+     * The title of this video with length >= 1, the video titles of an owner cannot be the same
+     */
     private String title;
 
-    @CsvBindByName(column = "Owner Mid")
-    private Long ownerMid;
+    /**
+     * The owner's {@code mid} of this video
+     */
+    private long ownerMid;
 
-    @CsvBindByName(column = "Owner Name")
+    /**
+     * The owner's {@code name} of this video
+     */
     private String ownerName;
 
-    @CsvBindByName(column = "Commit Time")
+    /**
+     * The commit time of this video
+     */
     private Timestamp commitTime;
 
-    @CsvBindByName(column = "Review Time")
+    /**
+     * The review time of this video, can be null
+     */
     private Timestamp reviewTime;
 
-    @CsvBindByName(column = "Public Time")
+    /**
+     * The public time of this video, can be null
+     */
     private Timestamp publicTime;
 
-    @CsvBindByName(column = "Duration")
-    private Long duration;
+    /**
+     * The length in seconds of this video
+     */
+    private float duration;
 
-    @CsvBindByName(column = "Description")
+    /**
+     * The description of this video
+     */
     private String description;
 
-    @CsvBindByName(column = "Reviewer")
+    /**
+     * The reviewer of this video, can be null
+     */
     private Long reviewer;
 
-    @CsvBindByName(column = "Like")
-    private Long[] like;
+    /**
+     * The users' {@code mid}s who liked this video
+     */
+    private long[] like;
 
-    @CsvBindByName(column = "Coin")
-    private Long[] coin;
+    /**
+     * The users' {@code mid}s who gave coin to this video
+     */
+    private long[] coin;
 
-    @CsvBindByName(column = "Favorite")
-    private Long[] favorite;
+    /**
+     * The users' {@code mid}s who collected to this video
+     */
+    private long[] favorite;
 
-    @CsvBindAndSplitByName(
-            column = "View",
-            elementType = ViewRecord.class,
-            converter = ViewRecordConverter.class,
-            splitOn = "(?<=\\)),\\s*(?=\\()"
-    )
-    private List<ViewRecord> view;
+    /**
+     * The users' {@code mid}s who have watched this video
+     */
+    private long[] viewerMids;
 
-    @Data
-    @AllArgsConstructor
-    public static class ViewRecord {
-
-        private Long mid;
-
-        private Float timestamp;
-    }
-
-    public static class ViewRecordConverter extends AbstractCsvConverter {
-
-        private static final Pattern PATTERN = Pattern.compile("\\('(?<mid>\\d+)', (?<ts>\\d+)\\)");
-
-        @Override
-        public Object convertToRead(String value) throws CsvDataTypeMismatchException {
-            val matcher = PATTERN.matcher(value);
-            if (!matcher.find()) {
-                throw new CsvDataTypeMismatchException(value, Long.class);
-            }
-            return new ViewRecord(
-                    Long.parseLong(matcher.group("mid")),
-                    Float.parseFloat(matcher.group("ts"))
-            );
-        }
-    }
+    /**
+     * The watch durations in seconds for the viewers {@code viewerMids}
+     */
+    private float[] viewTime;
 }

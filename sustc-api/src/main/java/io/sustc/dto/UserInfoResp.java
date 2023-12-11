@@ -1,35 +1,40 @@
 package io.sustc.dto;
 
+import java.io.Serializable;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * The user information class
+ */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserInfoResp {
+public class UserInfoResp implements Serializable {
 
     /**
      * The user's {@code mid}.
      */
-    private Long mid;
+    private long mid;
 
     /**
-     * The number of user's coins.
+     * The number of user's coins that he/she currently owns.
      */
-    private Integer coin;
+    private int coin;
 
     /**
      * The user's following {@code mid}s.
      */
-    private Long[] following;
+    private long[] following;
 
     /**
      * The user's follower {@code mid}s.
      */
-    private Long[] follower;
+    private long[] follower;
 
     /**
      * The videos' {@code bv}s watched by this user.

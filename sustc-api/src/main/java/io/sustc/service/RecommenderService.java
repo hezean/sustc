@@ -14,7 +14,7 @@ public interface RecommenderService {
      * @return a list of video {@code bv}s
      * @apiNote You may consider the following corner cases:
      * <ul>
-     *   <li>{@code bv} is invalid (null or empty or not found)</li>
+     *   <li>cannot find a video corresponding to the {@code bv}</li>
      * </ul>
      * If any of the corner case happened, {@code null} shall be returned.
      */
@@ -39,7 +39,7 @@ public interface RecommenderService {
      * @param pageNum  the page number, starts from 1
      * @return a list of video {@code bv}s, sorted by the recommendation score
      * @implNote 
-     * Since the users can't like/coin/favorite a video without watching it, the rates of these values cannot exceed 1.
+     * Though users can like/coin/favorite a video without watching it, the rates of these values should be clamped to 1.
      * If no one has watched this video, all the five scores shall be 0.
      * If the requested page is empty, return an empty list.
      * @apiNote You may consider the following corner cases:
@@ -52,8 +52,9 @@ public interface RecommenderService {
 
     /**
      * Recommends videos for a user, restricted on their interests.
-     * The user's interests are defined as the videos that the both user's followers and his/her followees have watched,
+     * The user's interests are defined as the videos that the user's friend(s) have watched,
      * filter out the videos that the user has already watched.
+     * Friend(s) of current user is/are the one(s) who is/are both the current user' follower and followee at the same time.
      * Sort the videos by:
      * <ol>
      *   <li>The number of friends who have watched the video</li>

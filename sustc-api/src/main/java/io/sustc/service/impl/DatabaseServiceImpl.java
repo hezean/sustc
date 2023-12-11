@@ -46,7 +46,10 @@ public class DatabaseServiceImpl implements DatabaseService {
             List<UserRecord> userRecords,
             List<VideoRecord> videoRecords
     ) {
-        throw new UnsupportedOperationException("TODO: implement your import logic");
+        // TODO: implement your import logic
+        System.out.println(danmuRecords.size());
+        System.out.println(userRecords.size());
+        System.out.println(videoRecords.size());
     }
 
     /*
