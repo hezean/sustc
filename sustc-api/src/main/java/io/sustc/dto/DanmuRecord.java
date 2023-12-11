@@ -29,8 +29,6 @@ public class DanmuRecord implements Serializable {
 
     /**
      * The danmu's content.
-     * The content has not been filtered.
-     * You need to clean the "dirty words" when importing.
      */
     private String content;
 
