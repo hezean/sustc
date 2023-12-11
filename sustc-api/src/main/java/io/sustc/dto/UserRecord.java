@@ -1,9 +1,15 @@
 package io.sustc.dto;
 
+import java.io.Serializable;
+
 import lombok.Data;
 
+/**
+ * The user record used for data import
+ * @implNote You may implement your own {@link java.lang.Object#toString()} since the default one in {@link lombok.Data} prints all array values.
+ */
 @Data
-public class UserRecord {
+public class UserRecord implements Serializable {
 
     /**
      * The user's ID

@@ -36,8 +36,8 @@ public class DatabaseServiceImpl implements DatabaseService {
 
     @Override
     public List<Integer> getGroupMembers() {
-        throw new UnsupportedOperationException("TODO: replace this with your own student id");
-        // return Arrays.asList(12210000, 12210001, 12210002);
+        //TODO: replace this with your own student IDs in your group
+        return Arrays.asList(12210000, 12210001, 12210002);
     }
 
     @Override
@@ -46,7 +46,10 @@ public class DatabaseServiceImpl implements DatabaseService {
             List<UserRecord> userRecords,
             List<VideoRecord> videoRecords
     ) {
-        throw new UnsupportedOperationException("TODO: implement your import logic");
+        // TODO: implement your import logic
+        System.out.println(danmuRecords.size());
+        System.out.println(userRecords.size());
+        System.out.println(videoRecords.size());
     }
 
     /*

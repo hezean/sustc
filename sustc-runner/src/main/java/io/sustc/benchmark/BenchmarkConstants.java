@@ -7,13 +7,9 @@ public final class BenchmarkConstants {
 
     public static final String IMPORT_DATA_PATH = "import";
 
-    public static final String RAW_DATA_PATH = "u_raw";
+    public static final String DANMU_FILENAME = "DanmuRecord.ser";
 
-    public static final String DANMU_FILENAME = "danmu.csv";
+    public static final String USER_FILENAME = "UserRecord.ser";
 
-    public static final String USER_FILENAME = "users.csv";
-
-    public static final String VIDEO_FILENAME = "videos.csv";
-
-    public static final int TIMEOUT_MINUTES = 5;
+    public static final String VIDEO_FILENAME = "VideoRecord.ser";
 }

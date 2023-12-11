@@ -2,10 +2,15 @@ package io.sustc.dto;
 
 import lombok.Data;
 
+import java.io.Serializable;
 import java.sql.Timestamp;
 
+/**
+ * The danmu record used for data import
+ * @implNote You may implement your own {@link java.lang.Object#toString()} since the default one in {@link lombok.Data} prints all array values.
+ */
 @Data
-public class DanmuRecord {
+public class DanmuRecord implements Serializable {
 
     /**
      * The danmu's video {@code bv}.
@@ -24,8 +29,6 @@ public class DanmuRecord {
 
     /**
      * The danmu's content.
-     * The content has not been filtered.
-     * You need to clean the "dirty words" when importing.
      */
     private String content;
 
