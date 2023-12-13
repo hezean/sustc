@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Arrays;
 import java.util.List;
 import java.sql.Date;
@@ -12,12 +13,7 @@ import javax.sql.DataSource;
 
 import java.time.LocalDate;
 
-import io.sustc.service.impl.ParseDate;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.origin.SystemEnvironmentOrigin;
-import org.springframework.cglib.core.Local;
-import org.springframework.cglib.core.internal.Function;
 import org.springframework.stereotype.Service;
 
 import com.zaxxer.hikari.HikariDataSource;
@@ -25,6 +21,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import io.sustc.dto.DanmuRecord;
 import io.sustc.dto.UserRecord;
 import io.sustc.dto.VideoRecord;
+import io.sustc.dto.UserRecord.Identity;
 import io.sustc.service.DatabaseService;
 import lombok.extern.slf4j.Slf4j;
 /**
@@ -52,8 +49,6 @@ public class DatabaseServiceImpl implements DatabaseService {
     private DataSource dataSource = new HikariDataSource();
     @Override
     public List<Integer> getGroupMembers() {
-        // throw new UnsupportedOperationException("TODO: replace this with your own
-        // student id");
         return Arrays.asList(12210216, 12212522);
     }
 
@@ -78,7 +73,7 @@ public class DatabaseServiceImpl implements DatabaseService {
             try (PreparedStatement disableStmt = conn.prepareStatement(disableSql)) {
                 disableStmt.execute();
             }
-            truncate();
+            //truncate();
             // Upload in UserRecord
             String userSql = "INSERT INTO users (mid, name, sex, birthday, level, sign, identity, coin) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
             String authSql = "INSERT INTO auth_info (mid, password, qq, wechat) VALUES (?, ?, ?, ?)";
@@ -107,7 +102,7 @@ public class DatabaseServiceImpl implements DatabaseService {
                     }
                     userStmt.setInt(5, user.getLevel());
                     userStmt.setString(6, user.getSign());
-                    if (user.getIdentity().equals("user"))
+                    if (user.getIdentity().equals(Identity.USER))
                         userStmt.setString(7, "user");
                     else
                         userStmt.setString(7, "superuser");
@@ -179,7 +174,7 @@ public class DatabaseServiceImpl implements DatabaseService {
                 
             }
             // Insert Danmu Records
-            try (PreparedStatement danmuStmt = conn.prepareStatement(danmuSql);
+            try (PreparedStatement danmuStmt = conn.prepareStatement(danmuSql, Statement.RETURN_GENERATED_KEYS);
                     PreparedStatement danmuLikeStmt = conn.prepareStatement(danmuLikeSql);) {
                 for (DanmuRecord danmu : danmuRecords) {
                     danmuStmt.setString(1, danmu.getBv());
@@ -188,13 +183,14 @@ public class DatabaseServiceImpl implements DatabaseService {
                     danmuStmt.setString(4, danmu.getContent());
                     danmuStmt.setTimestamp(5, danmu.getPostTime());
                     danmuStmt.addBatch();
+                    
                     batchcount++;
                     if (batchsize == batchcount) {
                         danmuStmt.executeBatch();
                         batchcount = 0;
                     }
                 }
-                danmuStmt.executeBatch();
+                // danmuStmt.executeBatch();
                 ResultSet id = danmuStmt.getGeneratedKeys();
                 int i = 0;
                 while (id.next()) {
@@ -310,7 +306,7 @@ public class DatabaseServiceImpl implements DatabaseService {
             batchInsertToTempTables(conn, videoList, "temp_coins");
             batchInsertToTempTables(conn, videoList, "temp_favorites");
             mergeDataWithMainTable(conn);
-            //dropTempTables(conn);
+            dropTempTables(conn);
 
             conn.commit();
     }
