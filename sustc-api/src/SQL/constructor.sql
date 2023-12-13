@@ -63,7 +63,7 @@ CREATE TABLE danmus (
     id SERIAL PRIMARY KEY,
     bv VARCHAR(50) REFERENCES videos(bv),
     mid BIGINT REFERENCES users(mid),
-    time INT,
+    time FLOAT,
     content TEXT,
     postTime TIMESTAMP
 );
