@@ -24,6 +24,7 @@ import io.sustc.dto.VideoRecord;
 import io.sustc.dto.UserRecord.Identity;
 import io.sustc.service.DatabaseService;
 import lombok.extern.slf4j.Slf4j;
+
 /**
  * It's important to mark your implementation class with {@link Service}
  * annotation.
@@ -47,6 +48,7 @@ public class DatabaseServiceImpl implements DatabaseService {
      */
     @Autowired
     private DataSource dataSource = new HikariDataSource();
+
     @Override
     public List<Integer> getGroupMembers() {
         return Arrays.asList(12210216, 12212522);
@@ -73,7 +75,7 @@ public class DatabaseServiceImpl implements DatabaseService {
             try (PreparedStatement disableStmt = conn.prepareStatement(disableSql)) {
                 disableStmt.execute();
             }
-            //truncate();
+            // truncate();
             // Upload in UserRecord
             String userSql = "INSERT INTO users (mid, name, sex, birthday, level, sign, identity, coin) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
             String authSql = "INSERT INTO auth_info (mid, password, qq, wechat) VALUES (?, ?, ?, ?)";
@@ -171,7 +173,7 @@ public class DatabaseServiceImpl implements DatabaseService {
                 }
                 videoStmt.executeBatch();
                 insertVideoInteractions(videoRecords, conn);
-                
+
             }
             // Insert Danmu Records
             try (PreparedStatement danmuStmt = conn.prepareStatement(danmuSql, Statement.RETURN_GENERATED_KEYS);
@@ -183,14 +185,29 @@ public class DatabaseServiceImpl implements DatabaseService {
                     danmuStmt.setString(4, danmu.getContent());
                     danmuStmt.setTimestamp(5, danmu.getPostTime());
                     danmuStmt.addBatch();
-                    
+
                     batchcount++;
                     if (batchsize == batchcount) {
                         danmuStmt.executeBatch();
+                        ResultSet id = danmuStmt.getGeneratedKeys();
+                        int i = 0;
+                        while (id.next()) {
+                            danmuLikeStmt.setInt(1, id.getInt(1));
+                            for (long mid : danmuRecords.get(i++).getLikedBy()) {
+                                danmuLikeStmt.setLong(2, mid);
+                                danmuLikeStmt.addBatch();
+                                batchcount++;
+                                if (batchsize == batchcount) {
+                                    danmuLikeStmt.executeBatch();
+                                    batchcount = 0;
+                                }
+                            }
+                        }
+                        danmuLikeStmt.executeBatch();
                         batchcount = 0;
                     }
                 }
-                // danmuStmt.executeBatch();
+                danmuStmt.executeBatch();
                 ResultSet id = danmuStmt.getGeneratedKeys();
                 int i = 0;
                 while (id.next()) {
@@ -205,7 +222,7 @@ public class DatabaseServiceImpl implements DatabaseService {
                         }
                     }
                 }
-                danmuLikeStmt.executeBatch();
+
             }
             // 启用外键约束
             String enableSql = "SET session_replication_role = 'origin'";
@@ -299,28 +316,29 @@ public class DatabaseServiceImpl implements DatabaseService {
      */
 
     private static void insertVideoInteractions(List<VideoRecord> videoList, Connection conn) throws SQLException {
-            conn.setAutoCommit(false);
+        conn.setAutoCommit(false);
 
-            createTempTables(conn);
-            batchInsertToTempTables(conn, videoList, "temp_likes");
-            batchInsertToTempTables(conn, videoList, "temp_coins");
-            batchInsertToTempTables(conn, videoList, "temp_favorites");
-            mergeDataWithMainTable(conn);
-            dropTempTables(conn);
+        createTempTables(conn);
+        batchInsertToTempTables(conn, videoList, "temp_likes");
+        batchInsertToTempTables(conn, videoList, "temp_coins");
+        batchInsertToTempTables(conn, videoList, "temp_favorites");
+        mergeDataWithMainTable(conn);
+        dropTempTables(conn);
 
-            conn.commit();
+        conn.commit();
     }
 
     private static void createTempTables(Connection conn) throws SQLException {
         try (PreparedStatement pstmt = conn.prepareStatement(
                 "CREATE TEMP TABLE IF NOT EXISTS temp_likes (mid BIGINT, bv VARCHAR(50));" +
-                "CREATE TEMP TABLE IF NOT EXISTS temp_coins (mid BIGINT, bv VARCHAR(50));" +
-                "CREATE TEMP TABLE IF NOT EXISTS temp_favorites (mid BIGINT, bv VARCHAR(50));")) {
+                        "CREATE TEMP TABLE IF NOT EXISTS temp_coins (mid BIGINT, bv VARCHAR(50));" +
+                        "CREATE TEMP TABLE IF NOT EXISTS temp_favorites (mid BIGINT, bv VARCHAR(50));")) {
             pstmt.execute();
         }
     }
 
-    private static void batchInsertToTempTables(Connection conn, List<VideoRecord> videoList, String tableName) throws SQLException {
+    private static void batchInsertToTempTables(Connection conn, List<VideoRecord> videoList, String tableName)
+            throws SQLException {
         String sql = "INSERT INTO " + tableName + " (mid, bv) VALUES (?, ?)";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             for (VideoRecord video : videoList) {
@@ -332,7 +350,7 @@ public class DatabaseServiceImpl implements DatabaseService {
                 } else if ("temp_favorites".equals(tableName)) {
                     userIds = video.getFavorite();
                 }
-                
+
                 for (long userId : userIds) {
                     pstmt.setLong(1, userId);
                     pstmt.setString(2, video.getBv());
@@ -345,43 +363,42 @@ public class DatabaseServiceImpl implements DatabaseService {
 
     private static void mergeDataWithMainTable(Connection conn) throws SQLException {
         String updateSql = "WITH combined AS (" +
-                           "SELECT DISTINCT mid, bv FROM temp_likes " +
-                           "UNION SELECT DISTINCT mid, bv FROM temp_coins " +
-                           "UNION SELECT DISTINCT mid, bv FROM temp_favorites" +
-                           "), " +
-                           "likes AS (" +
-                           "SELECT mid, bv, TRUE as is_liked FROM temp_likes" +
-                           "), " +
-                           "coins AS (" +
-                           "SELECT mid, bv, TRUE as is_coined FROM temp_coins" +
-                           "), " +
-                           "favorites AS (" +
-                           "SELECT mid, bv, TRUE as is_favorited FROM temp_favorites" +
-                           ") " +
-                           "INSERT INTO user_video_interaction (mid, bv, is_liked, is_coined, is_favorited) " +
-                           "SELECT c.mid, c.bv, " +
-                           "COALESCE(l.is_liked, FALSE), " +
-                           "COALESCE(cn.is_coined, FALSE), " +
-                           "COALESCE(f.is_favorited, FALSE) " +
-                           "FROM combined c " +
-                           "LEFT JOIN likes l ON c.mid = l.mid AND c.bv = l.bv " +
-                           "LEFT JOIN coins cn ON c.mid = cn.mid AND c.bv = cn.bv " +
-                           "LEFT JOIN favorites f ON c.mid = f.mid AND c.bv = f.bv " +
-                           "ON CONFLICT (mid, bv) DO UPDATE SET " +
-                           "is_liked = EXCLUDED.is_liked, " +
-                           "is_coined = EXCLUDED.is_coined, " +
-                           "is_favorited = EXCLUDED.is_favorited;";
+                "SELECT DISTINCT mid, bv FROM temp_likes " +
+                "UNION SELECT DISTINCT mid, bv FROM temp_coins " +
+                "UNION SELECT DISTINCT mid, bv FROM temp_favorites" +
+                "), " +
+                "likes AS (" +
+                "SELECT mid, bv, TRUE as is_liked FROM temp_likes" +
+                "), " +
+                "coins AS (" +
+                "SELECT mid, bv, TRUE as is_coined FROM temp_coins" +
+                "), " +
+                "favorites AS (" +
+                "SELECT mid, bv, TRUE as is_favorited FROM temp_favorites" +
+                ") " +
+                "INSERT INTO user_video_interaction (mid, bv, is_liked, is_coined, is_favorited) " +
+                "SELECT c.mid, c.bv, " +
+                "COALESCE(l.is_liked, FALSE), " +
+                "COALESCE(cn.is_coined, FALSE), " +
+                "COALESCE(f.is_favorited, FALSE) " +
+                "FROM combined c " +
+                "LEFT JOIN likes l ON c.mid = l.mid AND c.bv = l.bv " +
+                "LEFT JOIN coins cn ON c.mid = cn.mid AND c.bv = cn.bv " +
+                "LEFT JOIN favorites f ON c.mid = f.mid AND c.bv = f.bv " +
+                "ON CONFLICT (mid, bv) DO UPDATE SET " +
+                "is_liked = EXCLUDED.is_liked, " +
+                "is_coined = EXCLUDED.is_coined, " +
+                "is_favorited = EXCLUDED.is_favorited;";
         try (PreparedStatement pstmt = conn.prepareStatement(updateSql)) {
             pstmt.execute();
         }
     }
-    
 
     private static void dropTempTables(Connection conn) throws SQLException {
         try (PreparedStatement pstmt = conn.prepareStatement(
                 "DROP TABLE IF EXISTS temp_likes;" +
-                "DROP TABLE IF EXISTS temp_coins;" +
-                "DROP TABLE IF EXISTS temp_favorites;")) {
+                        "DROP TABLE IF EXISTS temp_coins;" +
+                        "DROP TABLE IF EXISTS temp_favorites;")) {
             pstmt.execute();
         }
     }
