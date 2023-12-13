@@ -11,14 +11,16 @@ import java.sql.Date;
 import javax.sql.DataSource;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
+
+import io.sustc.service.impl.ParseDate;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.origin.SystemEnvironmentOrigin;
 import org.springframework.cglib.core.Local;
 import org.springframework.cglib.core.internal.Function;
 import org.springframework.stereotype.Service;
+
+import com.zaxxer.hikari.HikariDataSource;
 
 import io.sustc.dto.DanmuRecord;
 import io.sustc.dto.UserRecord;
@@ -47,8 +49,7 @@ public class DatabaseServiceImpl implements DatabaseService {
      * Injection</a>
      */
     @Autowired
-    private DataSource dataSource;
-
+    private DataSource dataSource = new HikariDataSource();
     @Override
     public List<Integer> getGroupMembers() {
         // throw new UnsupportedOperationException("TODO: replace this with your own
@@ -101,7 +102,7 @@ public class DatabaseServiceImpl implements DatabaseService {
                     if (birthday.equals("null") || birthday.equals("")) {
                         userStmt.setDate(4, null);
                     } else {
-                        LocalDate date = parseDate(birthday);
+                        LocalDate date = ParseDate.parseDate(birthday);
                         userStmt.setDate(4, Date.valueOf(date));
                     }
                     userStmt.setInt(5, user.getLevel());
@@ -300,22 +301,6 @@ public class DatabaseServiceImpl implements DatabaseService {
      * @return the parsed LocalDate object, or null if the date string cannot be
      *         parsed
      */
-    public static LocalDate parseDate(String dateString) {
-        DateTimeFormatter formatterMMDD = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        DateTimeFormatter formatterChinese = DateTimeFormatter.ofPattern("yyyy年M月d日");
-
-        try {
-            // 尝试第一种格式
-            return LocalDate.parse("1900-" + dateString, formatterMMDD);
-        } catch (DateTimeParseException e) {
-            try {
-                // 尝试第二种格式
-                return LocalDate.parse("1900年" + dateString, formatterChinese);
-            } catch (DateTimeParseException ex) {
-                throw new IllegalArgumentException("Invalid date format: " + dateString);
-            }
-        }
-    }
 
     private static void insertVideoInteractions(List<VideoRecord> videoList, Connection conn) throws SQLException {
             conn.setAutoCommit(false);

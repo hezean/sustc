@@ -55,4 +55,7 @@ public class UserInfoResp implements Serializable {
      * The videos' {@code bv}s posted by this user.
      */
     private String[] posted;
+
+    public void setName(String string) {
+    }
 }
