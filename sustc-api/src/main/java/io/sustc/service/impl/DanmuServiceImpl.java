@@ -57,8 +57,29 @@ public class DanmuServiceImpl implements DanmuService {
 
     @Override
     public List<Long> displayDanmu(String bv, float timeStart, float timeEnd, boolean filter) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'displayDanmu'");
+        try{
+            Connection conn = dataSource.getConnection();
+            String sql = "SELECT * FROM danmus WHERE bv = ? AND time >= ? AND time <= ?";
+            if(filter){
+                sql += " GROUP BY content";
+            }
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setString(1, bv);
+            ps.setFloat(2, timeStart);
+            ps.setFloat(3, timeEnd);
+            ResultSet rs = ps.executeQuery();
+            List<Long> list = new java.util.ArrayList<>();
+            while(rs.next()){
+                list.add(rs.getLong("id"));
+            }
+            rs.close();
+            ps.close();
+            conn.close();
+            return list;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     @Override
