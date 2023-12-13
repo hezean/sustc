@@ -5,7 +5,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 
 import com.zaxxer.hikari.HikariDataSource;
@@ -14,15 +13,11 @@ import io.sustc.dto.AuthInfo;
 import io.sustc.dto.RegisterUserReq;
 import io.sustc.dto.UserInfoResp;
 import io.sustc.dto.RegisterUserReq.Gender;
+import io.sustc.dto.UserRecord.Identity;
 import io.sustc.service.UserService;
 
-import io.sustc.service.impl.ParseDate;
-import lombok.extern.slf4j.Slf4j;
-
-import javax.management.Query;
 import javax.sql.DataSource;
 
-import java.security.Timestamp;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -105,14 +100,92 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean deleteAccount(AuthInfo auth, long mid) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'deleteAccount'");
+        try {
+            Connection conn = dataSource.getConnection();
+            Identity identity = Authenticate.authenticate(auth, conn);
+            if (identity == null) {
+                return false;
+            } else {
+                if (identity == Identity.USER && auth.getMid() != mid) {
+                    return false;
+                } else if (identity == Identity.SUPERUSER && auth.getMid() != mid
+                        && Authenticate.checkIdentity(mid, conn) != Identity.USER) {
+                    return false;
+                }
+                String usersql = "DELETE FROM users WHERE mid = ?";
+                String authsql = "DELETE FROM auth_info WHERE mid = ?";
+                String relationsql = "DELETE FROM user_relationships WHERE followermid = ? OR followingmid = ?";
+                String videosql = "DELETE FROM videos WHERE ownermid = ?";
+
+                PreparedStatement userps = conn.prepareStatement(usersql);
+                PreparedStatement authps = conn.prepareStatement(authsql);
+                PreparedStatement relationps = conn.prepareStatement(relationsql);
+                PreparedStatement videops = conn.prepareStatement(videosql);
+
+                userps.setLong(1, mid);
+                authps.setLong(1, mid);
+                relationps.setLong(1, mid);
+                relationps.setLong(2, mid);
+                videops.setLong(1, mid);
+                
+                String disableSql = "SET session_replication_role = 'replica'";
+                try (PreparedStatement disableStmt = conn.prepareStatement(disableSql)) {
+                    disableStmt.execute();
+                }
+                userps.executeUpdate();
+                authps.executeUpdate();
+                relationps.executeUpdate();
+                videops.executeUpdate();
+
+                String enableSql = "SET session_replication_role = 'origin'";
+                try (PreparedStatement enableStmt = conn.prepareStatement(enableSql)) {
+                    enableStmt.execute();
+                }
+
+                return true;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     @Override
     public boolean follow(AuthInfo auth, long followeeMid) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'follow'");
+
+        try {
+            Connection conn = dataSource.getConnection();
+            Identity identity = Authenticate.authenticate(auth, conn);
+            if (identity == null) {
+                return false;
+            } else {
+                String sql = "SELECT * FROM user_relationships WHERE followermid = ? AND followingmid = ?";
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ps.setLong(1, auth.getMid());
+                ps.setLong(2, followeeMid);
+                ResultSet rs = ps.executeQuery();
+                if (rs.next()) {
+                    String sql1 = "DELETE FROM user_relationships WHERE followermid = ? AND followingmid = ?";
+                    PreparedStatement ps1 = conn.prepareStatement(sql1);
+                    ps1.setLong(1, auth.getMid());
+                    ps1.setLong(2, followeeMid);
+                    ps1.executeUpdate();
+                    return false;
+                } else {
+                    String sql1 = "INSERT INTO user_relationships (followermid, followingmid) VALUES (?, ?)";
+                    PreparedStatement ps1 = conn.prepareStatement(sql1);
+                    ps1.setLong(1, auth.getMid());
+                    ps1.setLong(2, followeeMid);
+                    ps1.executeUpdate();
+                    return true;
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     @Override
@@ -140,10 +213,10 @@ public class UserServiceImpl implements UserService {
 
             usersps.setLong(1, mid);
             ResultSet usersrs = usersps.executeQuery(); // Store the query result in a variable
-            
+
             UserInfoResp resp = new UserInfoResp();
             resp.setMid(mid);
-            if(usersrs.next())
+            if (usersrs.next())
                 resp.setCoin(usersrs.getInt("coin"));
 
             interps.setLong(1, mid);
@@ -163,7 +236,7 @@ public class UserServiceImpl implements UserService {
             }
             resp.setLiked(liked.toArray(new String[liked.size()]));
             resp.setCollected(collected.toArray(new String[collected.size()]));
-            
+
             videosps.setLong(1, mid);
             ResultSet videosrs = videosps.executeQuery();
             while (videosrs.next()) {
@@ -203,10 +276,9 @@ public class UserServiceImpl implements UserService {
                 longArray2[i] = followingList.get(i);
             }
             resp.setFollowing(longArray2);
-        return resp;
+            return resp;
 
         } catch (SQLException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
         return null;
