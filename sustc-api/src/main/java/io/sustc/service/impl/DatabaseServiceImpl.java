@@ -17,6 +17,7 @@ import java.time.format.DateTimeParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.origin.SystemEnvironmentOrigin;
 import org.springframework.cglib.core.Local;
+import org.springframework.cglib.core.internal.Function;
 import org.springframework.stereotype.Service;
 
 import io.sustc.dto.DanmuRecord;
@@ -89,91 +90,92 @@ public class DatabaseServiceImpl implements DatabaseService {
             String danmuSql = "INSERT INTO danmus (bv, mid, time, content, postTime) VALUES (?, ?, ?, ?, ?)";
             String danmuLikeSql = "INSERT INTO danmu_like (danmuId, mid) VALUES (?, ?)";
             // Insert User Records
-            // try (PreparedStatement userStmt = conn.prepareStatement(userSql);
-            //         PreparedStatement authStmt = conn.prepareStatement(authSql);
-            //         PreparedStatement followerStmt = conn.prepareStatement(followerSql);) {
-            //     for (UserRecord user : userRecords) {
-            //         userStmt.setLong(1, user.getMid());
-            //         userStmt.setString(2, user.getName());
-            //         userStmt.setString(3, user.getSex());
-            //         String birthday = user.getBirthday(); // x月x日,可以为空
-            //         if (birthday.equals("null") || birthday.equals("")) {
-            //             userStmt.setDate(4, null);
-            //         } else {
-            //             LocalDate date = parseDate(birthday);
-            //             userStmt.setDate(4, Date.valueOf(date));
-            //         }
-            //         userStmt.setInt(5, user.getLevel());
-            //         userStmt.setString(6, user.getSign());
-            //         if (user.getIdentity().equals("user"))
-            //             userStmt.setString(7, "user");
-            //         else
-            //             userStmt.setString(7, "superuser");
-            //         userStmt.setInt(8, user.getCoin());
-            //         userStmt.addBatch();
+            try (PreparedStatement userStmt = conn.prepareStatement(userSql);
+                    PreparedStatement authStmt = conn.prepareStatement(authSql);
+                    PreparedStatement followerStmt = conn.prepareStatement(followerSql);) {
+                for (UserRecord user : userRecords) {
+                    userStmt.setLong(1, user.getMid());
+                    userStmt.setString(2, user.getName());
+                    userStmt.setString(3, user.getSex());
+                    String birthday = user.getBirthday(); // x月x日,可以为空
+                    if (birthday.equals("null") || birthday.equals("")) {
+                        userStmt.setDate(4, null);
+                    } else {
+                        LocalDate date = parseDate(birthday);
+                        userStmt.setDate(4, Date.valueOf(date));
+                    }
+                    userStmt.setInt(5, user.getLevel());
+                    userStmt.setString(6, user.getSign());
+                    if (user.getIdentity().equals("user"))
+                        userStmt.setString(7, "user");
+                    else
+                        userStmt.setString(7, "superuser");
+                    userStmt.setInt(8, user.getCoin());
+                    userStmt.addBatch();
 
-            //         authStmt.setLong(1, user.getMid());
-            //         authStmt.setString(2, user.getPassword());
-            //         authStmt.setString(3, user.getQq());
-            //         authStmt.setString(4, user.getWechat());
-            //         authStmt.addBatch();
-            //         followerStmt.setLong(1, user.getMid());
-            //         for (long mid : user.getFollowing()) {
-            //             followerStmt.setLong(2, mid);
-            //             followerStmt.addBatch();
-            //         }
-            //         batchcount++;
-            //         if (batchsize == batchcount) {
-            //             userStmt.executeBatch();
-            //             authStmt.executeBatch();
-            //             followerStmt.executeBatch();
-            //             batchcount = 0;
+                    authStmt.setLong(1, user.getMid());
+                    authStmt.setString(2, user.getPassword());
+                    authStmt.setString(3, user.getQq());
+                    authStmt.setString(4, user.getWechat());
+                    authStmt.addBatch();
+                    followerStmt.setLong(1, user.getMid());
+                    for (long mid : user.getFollowing()) {
+                        followerStmt.setLong(2, mid);
+                        followerStmt.addBatch();
+                    }
+                    batchcount++;
+                    if (batchsize == batchcount) {
+                        userStmt.executeBatch();
+                        authStmt.executeBatch();
+                        followerStmt.executeBatch();
+                        batchcount = 0;
 
-            //         }
-            //     }
-            //     authStmt.executeBatch();
-            //     userStmt.executeBatch();
-            //     followerStmt.executeBatch();
-            // }
+                    }
+                }
+                authStmt.executeBatch();
+                userStmt.executeBatch();
+                followerStmt.executeBatch();
+            }
             // Insert Video Records
             try (PreparedStatement videoStmt = conn.prepareStatement(videoSql);
                     PreparedStatement interactionStmt = conn.prepareStatement(interactionSql);
                     PreparedStatement watchStmt = conn.prepareStatement(watchSql);) {
-                // for (VideoRecord video : videoRecords) {
-                //     videoStmt.setString(1, video.getBv());
-                //     videoStmt.setString(2, video.getTitle());
-                //     videoStmt.setLong(3, video.getOwnerMid());
-                //     videoStmt.setTimestamp(4, video.getCommitTime());
-                //     videoStmt.setTimestamp(5, video.getReviewTime());
-                //     videoStmt.setTimestamp(6, video.getPublicTime());
-                //     videoStmt.setFloat(7, video.getDuration());
-                //     videoStmt.setString(8, video.getDescription());
-                //     videoStmt.setBoolean(9, false);
-                //     videoStmt.setLong(10, video.getReviewer());
-                //     videoStmt.addBatch();
+                for (VideoRecord video : videoRecords) {
+                    videoStmt.setString(1, video.getBv());
+                    videoStmt.setString(2, video.getTitle());
+                    videoStmt.setLong(3, video.getOwnerMid());
+                    videoStmt.setTimestamp(4, video.getCommitTime());
+                    videoStmt.setTimestamp(5, video.getReviewTime());
+                    videoStmt.setTimestamp(6, video.getPublicTime());
+                    videoStmt.setFloat(7, video.getDuration());
+                    videoStmt.setString(8, video.getDescription());
+                    videoStmt.setBoolean(9, false);
+                    videoStmt.setLong(10, video.getReviewer());
+                    videoStmt.addBatch();
 
-                //     int innerBatchCount = 0;
-                //     int temp = 0;
-                //     for (long mid : video.getViewerMids()) {
-                //         watchStmt.setLong(1, mid);
-                //         watchStmt.setString(2, video.getBv());
-                //         watchStmt.setFloat(3, video.getViewTime()[temp++]);
-                //         watchStmt.addBatch();
-                //         innerBatchCount++;
-                //         if (innerBatchCount == batchcount) {
-                //             watchStmt.executeBatch();
-                //             innerBatchCount = 0;
-                //         }
-                //     }
-                //     watchStmt.executeBatch();
-                //     batchcount++;
-                //     if (batchsize == batchcount) {
-                //         videoStmt.executeBatch();
-                //         batchcount = 0;
-                //     }
-                // }
-                // videoStmt.executeBatch();
-                //updateVideoInteractions(videoRecords, conn);
+                    int innerBatchCount = 0;
+                    int temp = 0;
+                    for (long mid : video.getViewerMids()) {
+                        watchStmt.setLong(1, mid);
+                        watchStmt.setString(2, video.getBv());
+                        watchStmt.setFloat(3, video.getViewTime()[temp++]);
+                        watchStmt.addBatch();
+                        innerBatchCount++;
+                        if (innerBatchCount == batchcount) {
+                            watchStmt.executeBatch();
+                            innerBatchCount = 0;
+                        }
+                    }
+                    watchStmt.executeBatch();
+                    batchcount++;
+                    if (batchsize == batchcount) {
+                        videoStmt.executeBatch();
+                        batchcount = 0;
+                    }
+                }
+                videoStmt.executeBatch();
+                insertVideoInteractions(videoRecords, conn);
+                
             }
             // Insert Danmu Records
             try (PreparedStatement danmuStmt = conn.prepareStatement(danmuSql);
@@ -315,92 +317,90 @@ public class DatabaseServiceImpl implements DatabaseService {
         }
     }
 
-    public static void updateVideoInteractions(List<VideoRecord> videoList, Connection conn) {
-        // 创建临时表
-        try {
-            createTempTable(conn);
-            System.out.println("create temp table");
-            insertDataToTempTable(conn, videoList);
-            System.out.println("insert data to temp table");
-            mergeDataIntoMainTable(conn);
-            System.out.println("merge data into main table");
-            dropTempTable(conn);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+    private static void insertVideoInteractions(List<VideoRecord> videoList, Connection conn) throws SQLException {
+            conn.setAutoCommit(false);
+
+            createTempTables(conn);
+            batchInsertToTempTables(conn, videoList, "temp_likes");
+            batchInsertToTempTables(conn, videoList, "temp_coins");
+            batchInsertToTempTables(conn, videoList, "temp_favorites");
+            mergeDataWithMainTable(conn);
+            //dropTempTables(conn);
+
+            conn.commit();
     }
 
-    private static void createTempTable(Connection conn) throws SQLException {
+    private static void createTempTables(Connection conn) throws SQLException {
         try (PreparedStatement pstmt = conn.prepareStatement(
-                "CREATE TEMP TABLE temp_user_video_interaction (" +
-                        "mid BIGINT, bv VARCHAR(50), is_liked BOOLEAN DEFAULT FALSE, " +
-                        "is_coined BOOLEAN DEFAULT FALSE, is_favorited BOOLEAN DEFAULT FALSE)")) {
+                "CREATE TEMP TABLE IF NOT EXISTS temp_likes (mid BIGINT, bv VARCHAR(50));" +
+                "CREATE TEMP TABLE IF NOT EXISTS temp_coins (mid BIGINT, bv VARCHAR(50));" +
+                "CREATE TEMP TABLE IF NOT EXISTS temp_favorites (mid BIGINT, bv VARCHAR(50));")) {
             pstmt.execute();
         }
     }
 
-    private static void insertDataToTempTable(Connection conn, List<VideoRecord> videoList) throws SQLException {
-        String sql = "INSERT INTO temp_user_video_interaction (mid, bv, is_liked, is_coined, is_favorited) VALUES (?, ?, ?, ?, ?)";
+    private static void batchInsertToTempTables(Connection conn, List<VideoRecord> videoList, String tableName) throws SQLException {
+        String sql = "INSERT INTO " + tableName + " (mid, bv) VALUES (?, ?)";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             for (VideoRecord video : videoList) {
-                int batchcount = 0;
-
-                for (long userId : video.getLike()) {
-                    pstmt.setLong(1, userId);
-                    pstmt.setString(2, video.getBv());
-                    pstmt.setBoolean(3, true);
-                    pstmt.setBoolean(4, false);
-                    pstmt.setBoolean(5, false);
-                    pstmt.addBatch();
-                    batchcount++;
-                    if (batchcount == batchsize) {
-                        pstmt.executeBatch();
-                        batchcount = 0;
-                    }
+                long[] userIds = new long[0];
+                if ("temp_likes".equals(tableName)) {
+                    userIds = video.getLike();
+                } else if ("temp_coins".equals(tableName)) {
+                    userIds = video.getCoin();
+                } else if ("temp_favorites".equals(tableName)) {
+                    userIds = video.getFavorite();
                 }
-                for (long userId : video.getCoin()) {
+                
+                for (long userId : userIds) {
                     pstmt.setLong(1, userId);
                     pstmt.setString(2, video.getBv());
-                    pstmt.setBoolean(3, false);
-                    pstmt.setBoolean(4, true);
-                    pstmt.setBoolean(5, false);
                     pstmt.addBatch();
-                    batchcount++;
-                    if (batchcount == batchsize) {
-                        pstmt.executeBatch();
-                        batchcount = 0;
-                    }
-                }
-                for (long userId : video.getFavorite()) {
-                    pstmt.setLong(1, userId);
-                    pstmt.setString(2, video.getBv());
-                    pstmt.setBoolean(3, false);
-                    pstmt.setBoolean(4, false);
-                    pstmt.setBoolean(5, true);
-                    pstmt.addBatch();
-                    batchcount++;
-                    if (batchcount == batchsize) {
-                        pstmt.executeBatch();
-                        batchcount = 0;
-                    }
                 }
             }
             pstmt.executeBatch();
         }
     }
 
-    private static void mergeDataIntoMainTable(Connection conn) throws SQLException {
-        try (PreparedStatement pstmt = conn.prepareStatement(
-                "INSERT INTO user_video_interaction (mid, bv, is_liked, is_coined, is_favorited) " +
-                        "SELECT mid, bv, is_liked, is_coined, is_favorited FROM temp_user_video_interaction " +
-                        "ON CONFLICT (mid, bv) DO UPDATE " +
-                        "SET is_liked = EXCLUDED.is_liked, is_coined = EXCLUDED.is_coined, is_favorited = EXCLUDED.is_favorited")) {
+    private static void mergeDataWithMainTable(Connection conn) throws SQLException {
+        String updateSql = "WITH combined AS (" +
+                           "SELECT DISTINCT mid, bv FROM temp_likes " +
+                           "UNION SELECT DISTINCT mid, bv FROM temp_coins " +
+                           "UNION SELECT DISTINCT mid, bv FROM temp_favorites" +
+                           "), " +
+                           "likes AS (" +
+                           "SELECT mid, bv, TRUE as is_liked FROM temp_likes" +
+                           "), " +
+                           "coins AS (" +
+                           "SELECT mid, bv, TRUE as is_coined FROM temp_coins" +
+                           "), " +
+                           "favorites AS (" +
+                           "SELECT mid, bv, TRUE as is_favorited FROM temp_favorites" +
+                           ") " +
+                           "INSERT INTO user_video_interaction (mid, bv, is_liked, is_coined, is_favorited) " +
+                           "SELECT c.mid, c.bv, " +
+                           "COALESCE(l.is_liked, FALSE), " +
+                           "COALESCE(cn.is_coined, FALSE), " +
+                           "COALESCE(f.is_favorited, FALSE) " +
+                           "FROM combined c " +
+                           "LEFT JOIN likes l ON c.mid = l.mid AND c.bv = l.bv " +
+                           "LEFT JOIN coins cn ON c.mid = cn.mid AND c.bv = cn.bv " +
+                           "LEFT JOIN favorites f ON c.mid = f.mid AND c.bv = f.bv " +
+                           "ON CONFLICT (mid, bv) DO UPDATE SET " +
+                           "is_liked = EXCLUDED.is_liked, " +
+                           "is_coined = EXCLUDED.is_coined, " +
+                           "is_favorited = EXCLUDED.is_favorited;";
+        try (PreparedStatement pstmt = conn.prepareStatement(updateSql)) {
             pstmt.execute();
         }
     }
+    
 
-    private static void dropTempTable(Connection conn) throws SQLException {
-        try (PreparedStatement pstmt = conn.prepareStatement("DROP TABLE temp_user_video_interaction")) {
+    private static void dropTempTables(Connection conn) throws SQLException {
+        try (PreparedStatement pstmt = conn.prepareStatement(
+                "DROP TABLE IF EXISTS temp_likes;" +
+                "DROP TABLE IF EXISTS temp_coins;" +
+                "DROP TABLE IF EXISTS temp_favorites;")) {
             pstmt.execute();
         }
     }
