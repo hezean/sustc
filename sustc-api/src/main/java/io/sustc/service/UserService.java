@@ -16,8 +16,9 @@ public interface UserService {
      * @apiNote You may consider the following corner cases:
      * <ul>
      *   <li>{@code password} or {@code name} or {@code sex} in {@code req} is null or empty</li>
-     *   <li>{@code birthday} in {@code req} is valid (not null nor empty) while it's not a birthday (X月X日)</li>
-     *   <li>there is another user with same {@code name} or {@code qq} or {@code wechat} in {@code req}</li>
+     *   <li>{@code birthday} in {@code req} is invalid (null nor empty)</li>
+     *   <li>{@code birthday} in {@code req} is valid while it's not a birthday (X月X日)</li>
+     *   <li>there is another user with same {@code qq} or {@code wechat} in {@code req}</li>
      * </ul>
      * If any of the corner case happened, {@code -1} shall be returned.
      */
