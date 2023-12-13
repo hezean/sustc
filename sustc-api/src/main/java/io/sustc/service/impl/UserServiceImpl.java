@@ -2,6 +2,8 @@ package io.sustc.service.impl;
 
 import java.time.LocalDate;
 
+import java.util.ArrayList;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
@@ -17,12 +19,14 @@ import io.sustc.service.UserService;
 import io.sustc.service.impl.ParseDate;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.management.Query;
 import javax.sql.DataSource;
 
 import java.security.Timestamp;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 @Service
@@ -36,13 +40,13 @@ public class UserServiceImpl implements UserService {
         if (req.getPassword() == null) {
             return -1;
         }
-        if(req.getName() == null || req.getName().equals("")) {
+        if (req.getName() == null || req.getName().equals("")) {
             req.setName("fuck" + System.currentTimeMillis());
         }
-        if(req.getSex() == null){
+        if (req.getSex() == null) {
             req.setSex(Gender.UNKNOWN);
         }
-        
+
         try {
             Connection conn = dataSource.getConnection();
             String sql = "SELECT * FROM auth_info WHERE qq = ? OR wechat = ?";
@@ -55,7 +59,7 @@ public class UserServiceImpl implements UserService {
             sql = "SELECT * FROM users WHERE name = ?";
             ps = conn.prepareStatement(sql);
             ps.setString(1, req.getName());
-            if(ps.executeQuery().next()){
+            if (ps.executeQuery().next()) {
                 return -1;
             }
             long newUserId = createNewUser(req, conn);
@@ -80,7 +84,7 @@ public class UserServiceImpl implements UserService {
         psuser.setString(2, req.getName());
         psuser.setString(3, req.getSex().toString());
         LocalDate birthday = ParseDate.parseDate(req.getBirthday());
-        if(birthday == null)
+        if (birthday == null)
             birthday = LocalDate.now();
         psuser.setDate(4, Date.valueOf(birthday));
         psuser.setInt(5, 0);
@@ -113,15 +117,94 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserInfoResp getUserInfo(long mid) {
-        String sql = "SELECT * FROM users WHERE mid = ?";
+        String users = "SELECT * FROM users WHERE mid = ?";
+        String inter_info = "SELECT * FROM user_video_interaction WHERE mid = ?";
+        String videos = "SELECT * FROM videos WHERE ownermid = ?";
+        String watches = "SELECT * FROM user_video_watch WHERE mid = ?";
+        String follower = "SELECT * FROM user_relationships WHERE followermid = ?";
+        String following = "SELECT * FROM user_relationships WHERE followingmid = ?";
         try (Connection conn = dataSource.getConnection()) {
-            PreparedStatement ps = conn.prepareStatement(sql);
-            ps.setLong(1, mid);
+            PreparedStatement usersps = conn.prepareStatement(users);
+            PreparedStatement interps = conn.prepareStatement(inter_info);
+            PreparedStatement videosps = conn.prepareStatement(videos);
+            PreparedStatement watchesps = conn.prepareStatement(watches);
+            PreparedStatement followerps = conn.prepareStatement(follower);
+            PreparedStatement followingps = conn.prepareStatement(following);
+
+            ArrayList<String> watched = new ArrayList<String>();
+            ArrayList<String> liked = new ArrayList<String>();
+            ArrayList<String> collected = new ArrayList<String>();
+            ArrayList<String> posted = new ArrayList<String>();
+            ArrayList<Long> followerList = new ArrayList<Long>();
+            ArrayList<Long> followingList = new ArrayList<Long>();
+
+            usersps.setLong(1, mid);
+            ResultSet usersrs = usersps.executeQuery(); // Store the query result in a variable
+            
             UserInfoResp resp = new UserInfoResp();
             resp.setMid(mid);
-            resp.setName(ps.executeQuery().getString("name"));
-            resp.setCoin(ps.executeQuery().getInt("coin"));
-            //TODO: set following, follower, watched, liked, collected, posted
+            if(usersrs.next())
+                resp.setCoin(usersrs.getInt("coin"));
+
+            interps.setLong(1, mid);
+            ResultSet interrs = interps.executeQuery();
+
+            while (interrs.next()) {
+                String bv = interrs.getString("bv");
+                Boolean isLiked = interrs.getBoolean("is_liked");
+                Boolean isCollected = interrs.getBoolean("is_favorited");
+                if (isLiked) {
+                    liked.add(bv);
+                }
+
+                if (isCollected) {
+                    collected.add(bv);
+                }
+            }
+            resp.setLiked(liked.toArray(new String[liked.size()]));
+            resp.setCollected(collected.toArray(new String[collected.size()]));
+            
+            videosps.setLong(1, mid);
+            ResultSet videosrs = videosps.executeQuery();
+            while (videosrs.next()) {
+                String bv = videosrs.getString("bv");
+                posted.add(bv);
+            }
+            resp.setPosted(posted.toArray(new String[posted.size()]));
+
+            watchesps.setLong(1, mid);
+            ResultSet watchesrs = watchesps.executeQuery();
+            while (watchesrs.next()) {
+                String bv = watchesrs.getString("bv");
+                watched.add(bv);
+            }
+            resp.setWatched(watched.toArray(new String[posted.size()]));
+
+            followerps.setLong(1, mid);
+            ResultSet followerrs = followerps.executeQuery();
+            while (followerrs.next()) {
+                Long follower_id = followerrs.getLong("followingmid");
+                followerList.add(follower_id);
+            }
+            long[] longArray = new long[followerList.size()];
+            for (int i = 0; i < followerList.size(); i++) {
+                longArray[i] = followerList.get(i);
+            }
+            resp.setFollower(longArray);
+
+            followingps.setLong(1, mid);
+            ResultSet followingrs = followingps.executeQuery();
+            while (followingrs.next()) {
+                Long following_id = followingrs.getLong("followermid");
+                followingList.add(following_id);
+            }
+            long[] longArray2 = new long[followingList.size()];
+            for (int i = 0; i < followingList.size(); i++) {
+                longArray2[i] = followingList.get(i);
+            }
+            resp.setFollowing(longArray2);
+        return resp;
+
         } catch (SQLException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();

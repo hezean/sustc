@@ -56,6 +56,5 @@ public class UserInfoResp implements Serializable {
      */
     private String[] posted;
 
-    public void setName(String string) {
-    }
+
 }
