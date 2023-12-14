@@ -1,4 +1,5 @@
 package io.sustc.service.impl;
+
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -18,9 +19,10 @@ import io.sustc.dto.AuthInfo;
 import io.sustc.dto.PostVideoReq;
 import io.sustc.dto.UserRecord.Identity;
 import io.sustc.service.VideoService;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
-
+@Slf4j
 public class VideoServiceImpl implements VideoService {
 
     @Autowired
@@ -29,10 +31,10 @@ public class VideoServiceImpl implements VideoService {
     @Override
     public String postVideo(AuthInfo auth, PostVideoReq req) {
         try {
-            if(Authenticate.videoAuthenticate(req, auth, dataSource.getConnection())){
-                //generate an uuid by using UUID.randomUUID().toString()
-                String bv  = UUID.randomUUID().toString();
-                String sql = "INSERT INTO videos (bv, ownermid, title, description, duration, committime, is_public) VALUES (?, ?, ?, ?, ?, ?, ?);";
+            if (Authenticate.videoAuthenticate(req, auth, dataSource.getConnection())) {
+                // generate an uuid by using UUID.randomUUID().toString()
+                String bv = UUID.randomUUID().toString();
+                String sql = "INSERT INTO videos (bv, ownermid, title, description, duration, committime, ispublic) VALUES (?, ?, ?, ?, ?, ?, ?);";
                 PreparedStatement ps = dataSource.getConnection().prepareStatement(sql);
                 ps.setString(1, bv);
                 ps.setLong(2, auth.getMid());
@@ -42,6 +44,7 @@ public class VideoServiceImpl implements VideoService {
                 ps.setTimestamp(6, req.getPublicTime());
                 ps.setBoolean(7, false);
                 ps.executeUpdate();
+                log.info("Successfully post video: {}", bv);
                 return bv;
             }
         } catch (SQLException e) {
@@ -52,22 +55,27 @@ public class VideoServiceImpl implements VideoService {
 
     @Override
     public boolean deleteVideo(AuthInfo auth, String bv) {
-        try{
+        try {
             Connection conn = dataSource.getConnection();
             Identity identity = Authenticate.authenticate(auth, conn);
-            if(identity == null ) return false;
+            if (identity == null)
+                return false;
             String sql = "SELECT ownermid FROM videos WHERE bv = ?;";
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setString(1, bv);
             ResultSet rs = ps.executeQuery();
-            if(!rs.next()) return false;
-            if(rs.getLong("ownermid") == auth.getMid() || identity == Identity.SUPERUSER){
+            if (!rs.next()) {
+                log.error("Delete video failed: bv not found");
+                return false;
+            }
+            if (rs.getLong("ownermid") == auth.getMid() || identity == Identity.SUPERUSER) {
                 sql = "DELETE FROM videos WHERE bv = ?;";
                 ps = conn.prepareStatement(sql);
                 ps.setString(1, bv);
                 ps.executeUpdate();
+                log.info("Successfully delete video: {}", bv);
                 return true;
-            } 
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -121,6 +129,5 @@ public class VideoServiceImpl implements VideoService {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'collectVideo'");
     }
-
 
 }

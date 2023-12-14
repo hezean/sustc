@@ -3,6 +3,8 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
+import lombok.extern.slf4j.Slf4j;
+@Slf4j
 public class ParseDate {
     
     public static LocalDate parseDate(String dateString) {
@@ -18,6 +20,7 @@ public class ParseDate {
                 return LocalDate.parse("1900年" + dateString, formatterChinese);
             } catch (DateTimeParseException ex) {
                 // 两种格式都不对
+                log.error("Date parse failed: {}", dateString);
                 return null;
             }
         }

@@ -15,6 +15,7 @@ import io.sustc.dto.UserInfoResp;
 import io.sustc.dto.RegisterUserReq.Gender;
 import io.sustc.dto.UserRecord.Identity;
 import io.sustc.service.UserService;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.sql.DataSource;
 
@@ -25,6 +26,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 @Service
+@Slf4j
 public class UserServiceImpl implements UserService {
     @Autowired
     private DataSource dataSource = new HikariDataSource();
@@ -33,12 +35,14 @@ public class UserServiceImpl implements UserService {
     public long register(RegisterUserReq req) {
         // check if req is valid
         if (req.getPassword() == null) {
+            log.error("Password is null.");
             return -1;
         }
         if (req.getName() == null || req.getName().equals("")) {
             req.setName("fuck" + System.currentTimeMillis());
         }
         if (req.getSex() == null) {
+            log.warn("Sex is null, set to UNKNOWN.");
             req.setSex(Gender.UNKNOWN);
         }
 
@@ -49,15 +53,18 @@ public class UserServiceImpl implements UserService {
             ps.setString(1, req.getQq());
             ps.setString(2, req.getWechat());
             if (ps.executeQuery().next()) {
+                log.error("This social media account have already used. Try to change another to sign up.");
                 return -1;
             }
             sql = "SELECT * FROM users WHERE name = ?";
             ps = conn.prepareStatement(sql);
             ps.setString(1, req.getName());
             if (ps.executeQuery().next()) {
+                log.error("There's another person used this name, try to change one.");
                 return -1;
             }
             long newUserId = createNewUser(req, conn);
+            log.info("Successfully create new user: " + newUserId);
             return newUserId;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -107,9 +114,11 @@ public class UserServiceImpl implements UserService {
                 return false;
             } else {
                 if (identity == Identity.USER && auth.getMid() != mid) {
+                    log.error("Authentication failed: user can only delete his own account.");
                     return false;
                 } else if (identity == Identity.SUPERUSER && auth.getMid() != mid
                         && Authenticate.checkIdentity(mid, conn) != Identity.USER) {
+                    log.error("Authentication failed: superuser can't delete another superuser's account.");
                     return false;
                 }
                 String usersql = "DELETE FROM users WHERE mid = ?";
@@ -141,7 +150,7 @@ public class UserServiceImpl implements UserService {
                 try (PreparedStatement enableStmt = conn.prepareStatement(enableSql)) {
                     enableStmt.execute();
                 }
-
+                log.info("Successfully delete user: " + mid);
                 return true;
             }
 
@@ -171,13 +180,15 @@ public class UserServiceImpl implements UserService {
                     ps1.setLong(1, auth.getMid());
                     ps1.setLong(2, followeeMid);
                     ps1.executeUpdate();
-                    return false;
+                    log.info("Successfully unfollow user: " + followeeMid);
+                    return true;
                 } else {
                     String sql1 = "INSERT INTO user_relationships (followermid, followingmid) VALUES (?, ?)";
                     PreparedStatement ps1 = conn.prepareStatement(sql1);
                     ps1.setLong(1, auth.getMid());
                     ps1.setLong(2, followeeMid);
                     ps1.executeUpdate();
+                    log.info("Successfully follow user: " + followeeMid);
                     return true;
                 }
             }

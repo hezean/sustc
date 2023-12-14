@@ -15,8 +15,10 @@ import com.zaxxer.hikari.HikariDataSource;
 
 import io.sustc.dto.AuthInfo;
 import io.sustc.service.DanmuService;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class DanmuServiceImpl implements DanmuService {
     @Autowired
     private DataSource dataSource = new HikariDataSource();
@@ -42,6 +44,7 @@ public class DanmuServiceImpl implements DanmuService {
                     rs.close();
                     ps.close();
                     conn.close();
+                    log.info("Successfully send danmu: {}", id);
                     return id;
                 }
                 rs.close();
@@ -75,6 +78,7 @@ public class DanmuServiceImpl implements DanmuService {
             rs.close();
             ps.close();
             conn.close();
+            log.info("Successfully display danmu: {} were found", list.size());
             return list;
         } catch (Exception e) {
             e.printStackTrace();
@@ -96,6 +100,7 @@ public class DanmuServiceImpl implements DanmuService {
                 ps.executeUpdate();
                 ps.close();
                 conn.close();
+                log.info("Successfully like danmu: {}", id);
                 return true;
             }
         } catch (Exception e) {
