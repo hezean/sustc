@@ -15,6 +15,9 @@ import io.sustc.dto.DanmuRecord;
 import io.sustc.dto.UserRecord;
 import io.sustc.dto.VideoRecord;
 import io.sustc.service.DatabaseService;
+import io.sustc.service.impl.Uploaders.DanmuDataUploader;
+import io.sustc.service.impl.Uploaders.UserDataUploader;
+import io.sustc.service.impl.Uploaders.VideoDataUploader;
 import lombok.extern.slf4j.Slf4j;
 
 /**
