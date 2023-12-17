@@ -11,8 +11,6 @@ import java.sql.Statement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.zaxxer.hikari.HikariDataSource;
-
 import io.sustc.dto.AuthInfo;
 import io.sustc.service.DanmuService;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DanmuServiceImpl implements DanmuService {
     @Autowired
-    private DataSource dataSource = new HikariDataSource();
+    private DataSource dataSource;
 
     @Override
     public long sendDanmu(AuthInfo auth, String bv, String content, float time) {

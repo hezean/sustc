@@ -29,7 +29,7 @@ import java.sql.SQLException;
 @Slf4j
 public class UserServiceImpl implements UserService {
     @Autowired
-    private DataSource dataSource = new HikariDataSource();
+    private DataSource dataSource;
 
     @Override
     public long register(RegisterUserReq req) {

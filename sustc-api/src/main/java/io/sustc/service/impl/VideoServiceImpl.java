@@ -26,7 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 public class VideoServiceImpl implements VideoService {
 
     @Autowired
-    private DataSource dataSource = new HikariDataSource();
+    private DataSource dataSource;
 
     @Override
     public String postVideo(AuthInfo auth, PostVideoReq req) {
