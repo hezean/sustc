@@ -13,12 +13,11 @@ import java.sql.Connection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.zaxxer.hikari.HikariDataSource;
-
 import io.sustc.dto.AuthInfo;
 import io.sustc.dto.PostVideoReq;
 import io.sustc.dto.UserRecord.Identity;
 import io.sustc.service.VideoService;
+import io.sustc.service.impl.Tools.Authenticate;
 import lombok.extern.slf4j.Slf4j;
 
 @Service

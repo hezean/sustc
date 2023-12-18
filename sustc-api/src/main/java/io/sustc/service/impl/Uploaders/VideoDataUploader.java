@@ -13,20 +13,22 @@ import java.sql.SQLException;
 import java.sql.Connection;
 
 import io.sustc.dto.*;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.sql.DataSource;
 
+@Slf4j
 public class VideoDataUploader {
     private static final int THREAD_POOL_SIZE = 10; // 根据需要调整线程池大小
     private final DataSource dataSource;
-    private static final int BATCH_SIZE = 50;
+    private static final int BATCH_SIZE = 20;
 
     @Autowired
     public VideoDataUploader(DataSource dataSource) {
         this.dataSource = dataSource;
     }
 
-    public void uploadVideoData(List<VideoRecord> videoRecords) throws SQLException, InterruptedException {
+    public void uploadVideoData(List<VideoRecord> videoRecords) throws SQLException {
         ExecutorService executor = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
 
         // 将videoRecords分割为多个批次
@@ -37,7 +39,7 @@ public class VideoDataUploader {
                 try {
                     processBatch(batch);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    log.error("Failed to process batch", e);
                 }
             });
         }
@@ -50,7 +52,7 @@ public class VideoDataUploader {
         }
     }
 
-    private void processBatch(List<VideoRecord> batch) throws SQLException {
+    private void processBatch(List<VideoRecord> batch) throws SQLException{
         String videoSql = "INSERT INTO videos (bv, title, ownerMid, commitTime, reviewTime, publicTime, duration, description, isPublic, reviewer) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         String interactionSql = "INSERT INTO user_video_interaction (mid, bv, is_liked, is_coined, is_favorited) VALUES (?, ?, ?, ?, ?)";
         String watchSql = "INSERT INTO user_video_watch (mid, bv, watch_time) VALUES (?, ?, ?)";
@@ -63,16 +65,18 @@ public class VideoDataUploader {
         String disableSql = "SET session_replication_role = 'replica'";
         try (PreparedStatement disableStmt = conn.prepareStatement(disableSql)) {
             disableStmt.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
 
         try (PreparedStatement videoStmt = conn.prepareStatement(videoSql);
-             PreparedStatement interactionStmt = conn.prepareStatement(interactionSql);
-             PreparedStatement watchStmt = conn.prepareStatement(watchSql);
-             PreparedStatement likeStmt = conn.prepareStatement(likeSql);
-             PreparedStatement coinStmt = conn.prepareStatement(coinSql);
-             PreparedStatement favoriteStmt = conn.prepareStatement(favoriteSql)) {
+                PreparedStatement interactionStmt = conn.prepareStatement(interactionSql);
+                PreparedStatement watchStmt = conn.prepareStatement(watchSql);
+                PreparedStatement likeStmt = conn.prepareStatement(likeSql);
+                PreparedStatement coinStmt = conn.prepareStatement(coinSql);
+                PreparedStatement favoriteStmt = conn.prepareStatement(favoriteSql)) {
 
-            for (VideoRecord video: batch) {
+            for (VideoRecord video : batch) {
                 // 插入video
                 videoStmt.setString(1, video.getBv());
                 videoStmt.setString(2, video.getTitle());
@@ -98,6 +102,9 @@ public class VideoDataUploader {
             videoStmt.executeBatch();
             insertVideoInteractions(batch, conn);
             conn.commit();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
             conn.close();
         }
     }

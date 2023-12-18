@@ -56,29 +56,25 @@ public class DatabaseServiceImpl implements DatabaseService {
             List<UserRecord> userRecords,
             List<VideoRecord> videoRecords) {
 
-        System.out.println(danmuRecords.size());
-        System.out.println(userRecords.size());
-        System.out.println(videoRecords.size());
+        System.out.println("Total danmu records: " + danmuRecords.size());
+        System.out.println("Total user records: " + userRecords.size());
+        System.out.println("Total video records: " + videoRecords.size());
         log.info("Importing data...");
         long start = System.currentTimeMillis();
         try {
             truncate();
             UserDataUploader userUploader = new UserDataUploader(dataSource);
             userUploader.uploadData(userRecords);
-            try {
-                VideoDataUploader videoUploader = new VideoDataUploader(dataSource);
-                videoUploader.uploadVideoData(videoRecords);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            VideoDataUploader videoUploader = new VideoDataUploader(dataSource);
+            videoUploader.uploadVideoData(videoRecords);
             DanmuDataUploader danmuUploader = new DanmuDataUploader(dataSource);
             danmuUploader.uploadData(danmuRecords);
             long end = System.currentTimeMillis();
             log.info("Importing data finished, time: {}ms", end - start);
 
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
-        } 
+            log.error(e.getMessage());
+        }
     }
 
     /*

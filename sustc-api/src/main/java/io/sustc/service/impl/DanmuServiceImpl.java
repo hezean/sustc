@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import io.sustc.dto.AuthInfo;
 import io.sustc.service.DanmuService;
+import io.sustc.service.impl.Tools.Authenticate;
 import lombok.extern.slf4j.Slf4j;
 
 @Service

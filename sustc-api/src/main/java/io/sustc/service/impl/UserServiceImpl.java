@@ -7,14 +7,14 @@ import java.util.ArrayList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.zaxxer.hikari.HikariDataSource;
-
 import io.sustc.dto.AuthInfo;
 import io.sustc.dto.RegisterUserReq;
 import io.sustc.dto.UserInfoResp;
 import io.sustc.dto.RegisterUserReq.Gender;
 import io.sustc.dto.UserRecord.Identity;
 import io.sustc.service.UserService;
+import io.sustc.service.impl.Tools.Authenticate;
+import io.sustc.service.impl.Tools.ParseDate;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.sql.DataSource;
