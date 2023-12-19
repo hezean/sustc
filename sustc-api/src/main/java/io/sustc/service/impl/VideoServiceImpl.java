@@ -3,6 +3,7 @@ package io.sustc.service.impl;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -106,13 +107,14 @@ public class VideoServiceImpl implements VideoService {
                         log.error("Update video failed: no change");
                         return false;
                     }
-                    String sql = "UPDATE videos SET title = ?, description = ?, duration = ?, committime = ? WHERE bv = ?;";
+                    String sql = "UPDATE videos SET title = ?, description = ?, duration = ?, committime = ?, ispublic = ? WHERE bv = ?;";
                     PreparedStatement ps = conn.prepareStatement(sql);
                     ps.setString(1, req.getTitle());
                     ps.setString(2, req.getDescription());
                     ps.setFloat(3, req.getDuration());
                     ps.setTimestamp(4, req.getPublicTime());
                     ps.setString(5, bv);
+                    ps.setBoolean(6, false);
                     ps.executeUpdate();
                     log.info("Successfully update video: {}", bv);
                     return true;
@@ -188,8 +190,38 @@ public class VideoServiceImpl implements VideoService {
 
     @Override
     public double getAverageViewRate(String bv) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getAverageViewRate'");
+        try {
+            Connection conn = dataSource.getConnection();
+            if(!checkVideoExists(bv)){
+                log.error("Get average view rate failed: bv not found");
+                return -1;
+            }
+            String sql = "SELECT * FROM user_video_watch WHERE bv = ?;";
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setString(1, bv);
+            ResultSet rs = ps.executeQuery();
+            int count = 0;
+            double sum = 0;
+            while (rs.next()) {
+                count++;
+                sum += rs.getDouble("watch_time");
+            }
+            if (count == 0) {
+                log.error("Get average view rate failed: bv not found");
+                return -1;
+            }
+            sql = "SELECT * FROM videos WHERE bv = ?;";
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, bv);
+            rs = ps.executeQuery();
+            rs.next();
+            double duration = rs.getDouble("duration");
+            log.info("Successfully get average view rate: {}", sum / (duration * count));
+            return sum / (duration * count);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
     }
 
     @Override
@@ -200,13 +232,46 @@ public class VideoServiceImpl implements VideoService {
 
     @Override
     public boolean reviewVideo(AuthInfo auth, String bv) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'reviewVideo'");
+        try {
+            Connection conn = dataSource.getConnection();
+            Identity identity = Authenticate.authenticate(auth, conn);
+            if (identity != Identity.SUPERUSER) {
+                log.error("Review video failed: permission denied");
+                return false;
+            }
+            if (!checkVideoExists(bv)) {
+                log.error("Review video failed: bv not found");
+                return false;
+            }
+            if (isUserVideoOwner(auth, bv)) {
+                log.error("Review video failed: user is the owner of the video");
+                return false;
+            }
+            String sql = "SELECT * FROM videos WHERE bv = ?;";
+            PreparedStatement checkps = conn.prepareStatement(sql);
+            checkps.setString(1, bv);
+            ResultSet rs = checkps.executeQuery();
+            if (rs.getBoolean("ispublic")) {
+                log.error("Review video failed: video has been reviewed");
+                return false;
+            }
+
+            sql = "UPDATE videos SET ispublic = true, reviewtime = now() WHERE bv = ?;";
+            PreparedStatement updateps = conn.prepareStatement(sql);
+            updateps.setString(1, bv);
+            updateps.executeUpdate();
+            log.info("Successfully review video: {}", bv);
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+
+        }
     }
 
     @Override
     public boolean coinVideo(AuthInfo auth, String bv) {
-        try{
+        try {
             Connection conn = dataSource.getConnection();
             Identity identity = Authenticate.authenticate(auth, conn);
             if (identity == null || !checkVideoExists(bv)) {
@@ -215,6 +280,10 @@ public class VideoServiceImpl implements VideoService {
             }
             if (isUserVideoOwner(auth, bv)) {
                 log.error("Coin video failed: user is the owner of the video");
+                return false;
+            }
+            if (canUserViewVideo(auth, bv)) {
+                log.error("Coin video failed: user cannot view the video");
                 return false;
             }
 
@@ -252,6 +321,10 @@ public class VideoServiceImpl implements VideoService {
                 log.error("Like video failed: user is the owner of the video");
                 return false;
             }
+            if (canUserViewVideo(auth, bv)) {
+                log.error("Like video failed: user cannot view the video");
+                return false;
+            }
 
             Boolean isLiked = getUserVideoInteractionStatus(auth, bv, "is_liked");
             if (isLiked != null) {
@@ -287,6 +360,10 @@ public class VideoServiceImpl implements VideoService {
                 log.error("Collect video failed: user is the owner of the video");
                 return false;
             }
+            if (canUserViewVideo(auth, bv)) {
+                log.error("Collect video failed: user cannot view the video");
+                return false;
+            }
 
             Boolean isFavorited = getUserVideoInteractionStatus(auth, bv, "is_favorited");
             if (isFavorited != null) {
@@ -309,7 +386,7 @@ public class VideoServiceImpl implements VideoService {
         }
     }
 
-    private Boolean checkVideoExists(String bv) throws SQLException {
+    private boolean checkVideoExists(String bv) throws SQLException {
         String sql = "SELECT * FROM videos WHERE bv = ?;";
         try (Connection conn = dataSource.getConnection();
                 PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -374,6 +451,27 @@ public class VideoServiceImpl implements VideoService {
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return rs.getLong("ownermid") == auth.getMid();
+                }
+                return false;
+            }
+        }
+    }
+
+    private boolean canUserViewVideo(AuthInfo auth, String bv) throws SQLException {
+        String sql = "SELECT * FROM videos WHERE bv = ?;";
+        try (Connection conn = dataSource.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            Identity identity = Authenticate.authenticate(auth, conn);
+            ps.setString(1, bv);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    // get public time
+                    Timestamp publicTime = rs.getTimestamp("committime");
+                    if (System.currentTimeMillis() < publicTime.getTime()) {
+                        return identity == Identity.SUPERUSER || isUserVideoOwner(auth, bv);
+                    }
+
+                    return rs.getBoolean("ispublic") || identity == Identity.SUPERUSER;
                 }
                 return false;
             }
