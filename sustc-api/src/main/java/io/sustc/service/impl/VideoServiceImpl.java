@@ -218,8 +218,54 @@ public class VideoServiceImpl implements VideoService {
 
     @Override
     public boolean collectVideo(AuthInfo auth, String bv) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'collectVideo'");
+        try{
+            Connection conn = dataSource.getConnection();
+            Identity identity = Authenticate.authenticate(auth, conn);
+            if (identity == null)
+                return false;
+            String sql = "SELECT * FROM videos WHERE bv = ?;";
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setString(1, bv);
+            ResultSet rs = ps.executeQuery();
+            if (!rs.next()) {
+                log.error("Collect video failed: bv not found");
+                return false;
+            }
+            sql = "SELECT * FROM user_video_interaction WHERE bv = ? AND mid = ?;";
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, bv);
+            ps.setLong(2, auth.getMid());
+            ResultSet interrs = ps.executeQuery();
+            if (interrs.next()) {
+                if (identity == Identity.USER && rs.getBoolean("ispublic") == false) {
+                    log.error("Cannot be searched by current user : {}:{}",
+                            auth.getMid(), identity);
+                    return false;
+                }else{
+                    Boolean iscollect = interrs.getBoolean("isfavorited");
+                    sql = "UPDATE user_video_interaction SET isfavorited = ? WHERE bv = ? AND mid = ?;";
+                    PreparedStatement collectps = conn.prepareStatement(sql);
+                    collectps.setBoolean(1, !iscollect);
+                    collectps.setString(2, bv);
+                    collectps.setLong(3, auth.getMid());
+                    collectps.executeUpdate();
+                    log.info("Successfully collect video: {}", bv);
+                }
+            }else{
+                sql = "INSERT INTO user_video_interaction (mid, bv, isfavorited, isliked, iscoined) VALUES (?, ?, ?, ?, ?);";
+                PreparedStatement collectps = conn.prepareStatement(sql);
+                collectps.setLong(1, auth.getMid());
+                collectps.setString(2, bv);
+                collectps.setBoolean(3, true);
+                collectps.setBoolean(4, false);
+                collectps.setBoolean(5, false);
+                collectps.executeUpdate();
+                log.info("Successfully collect video: {}", bv);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     private PostVideoReq getVideoInfo(AuthInfo auth, String bv) throws SQLException {
