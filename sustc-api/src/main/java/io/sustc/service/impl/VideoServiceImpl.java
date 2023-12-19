@@ -4,13 +4,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.*;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -150,34 +144,63 @@ public class VideoServiceImpl implements VideoService {
                     String descriptionsql = "SELECT bv FROM videos WHERE description LIKE ?;";
                     PreparedStatement titleps = conn.prepareStatement(titlesql);
                     PreparedStatement descriptionps = conn.prepareStatement(descriptionsql);
-                    List<String> bvlist = new ArrayList<String>();
+                    Map<String, Integer> viewMap = new HashMap<>();
+                    Map<String, Integer> countMap = new HashMap<>();
+                    
                     for (int i = 0; i < keyword.length; i++) {
                         titleps.setString(1, "%" + keyword[i] + "%");
-                        ResultSet rs1 = titleps.executeQuery();
-                        while (rs1.next()) {
-                            bvlist.add(rs1.getString("bv"));
-                        }
                         descriptionps.setString(1, "%" + keyword[i] + "%");
-                        ResultSet rs2 = descriptionps.executeQuery();
-                        while (rs2.next()) {
-                            bvlist.add(rs2.getString("bv"));
+                    
+                        ResultSet titlers = titleps.executeQuery();
+                        while (titlers.next()) {
+                            String bv = titlers.getString("bv");
+                            int viewCount = getViewCount(bv, conn);
+                            viewMap.put(bv, viewCount);
+                            countMap.put(bv, countMap.getOrDefault(bv, 0) + 1);
+                        }
+                    
+                        ResultSet descriptionsrs = descriptionps.executeQuery();
+                        while (descriptionsrs.next()) {
+                            String bv = descriptionsrs.getString("bv");
+                            int viewCount = getViewCount(bv, conn);
+                            viewMap.put(bv, viewCount);
+                            countMap.put(bv, countMap.getOrDefault(bv, 0) + 1);
                         }
                     }
-                    for (int i = 0; i < keyword.length; i++) {
-                        descriptionps.setString(1, "%" + keyword[i] + "%");
-                        ResultSet rs = descriptionps.executeQuery();
-                        while (rs.next()) {
-                            bvlist.add(rs.getString("bv"));
+                    
+                    // sort by count, then by view count
+                    List<Map.Entry<String, Integer>> list = new ArrayList<>(countMap.entrySet());
+                    Collections.sort(list, new Comparator<Map.Entry<String, Integer>>() {
+                        @Override
+                        public int compare(Map.Entry<String, Integer> o1, Map.Entry<String, Integer> o2) {
+                            int countCompare = o2.getValue().compareTo(o1.getValue());
+                            if (countCompare == 0) {
+                                return viewMap.get(o2.getKey()).compareTo(viewMap.get(o1.getKey()));
+                            }
+                            return countCompare;
                         }
+                    });
+                    
+                    List<String> result = new ArrayList<>();
+                    for (Map.Entry<String, Integer> entry : list) {
+                        result.add(entry.getKey());
                     }
-                    List<String> sortedBvList = bvlist.stream()
-                            .collect(Collectors.groupingBy(Function.identity(), Collectors.counting())) // 计算每个元素的出现次数
-                            .entrySet().stream()
-                            .sorted(Map.Entry.<String, Long>comparingByValue().reversed()) // 根据出现次数进行排序
-                            .map(Map.Entry::getKey) // 获取元素
-                            .collect(Collectors.toList()); // 转换为 List
-                    log.info("Successfully search video: {}", bvlist);
-                    return sortedBvList;
+                    //caculate the pages
+                    int totalPage = result.size() / pageSize;
+                    if (result.size() % pageSize != 0) {
+                        totalPage++;
+                    }
+                    if (pageNum > totalPage || pageNum < 1) {
+                        log.error("Search video failed: page number out of range");
+                        return null;
+                    }
+                    int start = (pageNum - 1) * pageSize;
+                    int end = pageNum * pageSize;
+                    if (end > result.size()) {
+                        end = result.size();
+                    }
+                    log.info("Successfully search video: {}", result.subList(start, end));
+                    return result.subList(start, end);
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
@@ -188,11 +211,13 @@ public class VideoServiceImpl implements VideoService {
         return null;
     }
 
+    
+
     @Override
     public double getAverageViewRate(String bv) {
         try {
             Connection conn = dataSource.getConnection();
-            if(!checkVideoExists(bv)){
+            if (!checkVideoExists(bv)) {
                 log.error("Get average view rate failed: bv not found");
                 return -1;
             }
@@ -226,8 +251,55 @@ public class VideoServiceImpl implements VideoService {
 
     @Override
     public Set<Integer> getHotspot(String bv) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getHotspot'");
+        try {
+            Connection conn = dataSource.getConnection();
+            if (!checkVideoExists(bv)) {
+                log.error("Get hotspot failed: bv not found");
+                return null;
+            }
+
+            String video = "SELECT duration FROM videos WHERE bv = ?;";
+            PreparedStatement videops = conn.prepareStatement(video);
+            videops.setString(1, bv);
+            ResultSet videors = videops.executeQuery();
+            videors.next();
+            int duration = (int) videors.getFloat("duration");
+
+            String danmu = "SELECT time FROM danmus WHERE bv = ?;";
+            PreparedStatement danmups = conn.prepareStatement(danmu);
+            danmups.setString(1, bv);
+            ArrayList<Integer> Scores = new ArrayList<>(duration / 10 + 1);
+            for (int i = 0; i < duration / 10 + 1; i++) {
+                Scores.add(0);
+            }
+            ResultSet danmurs = danmups.executeQuery();
+
+
+            while (danmurs.next()) {
+                Float time = danmurs.getFloat("time");
+                Scores.set((int)(time/10), Scores.get((int)(time/10))+1);
+            }
+            //find the max value in Scores
+            int max = 0;
+            for (int i = 0; i < Scores.size(); i++) {
+                if (Scores.get(i) > max) {
+                    max = i;
+                }
+            }
+            if(max == 0 && Scores.get(0) == 0){
+                log.error("Get hotspot failed: no danmu");
+                return null;
+            }
+
+            Set<Integer> result = new HashSet<>();
+            result.add(max * 10);
+            result.add(max * 10 + 10);
+            log.info("Successfully get hotspot: {}", result);
+            return result;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     @Override
@@ -478,4 +550,15 @@ public class VideoServiceImpl implements VideoService {
         }
     }
 
+    private int getViewCount(String bv, Connection conn) throws SQLException {
+        String sql = "SELECT * FROM user_video_watch WHERE bv = ? GROUP BY bv;";
+        PreparedStatement ps = conn.prepareStatement(sql);
+        ps.setString(1, bv);
+        try (ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt("count");
+            }
+            return 0;
+        }
+    }
 }

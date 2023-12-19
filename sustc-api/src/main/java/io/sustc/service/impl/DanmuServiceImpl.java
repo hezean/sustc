@@ -31,6 +31,14 @@ public class DanmuServiceImpl implements DanmuService {
             if(auth == null || Authenticate.authenticate(auth, conn) == null){
                 return -1;
             }else{
+                String isPublic = "SELECT * FROM videos WHERE bv = ? AND is_public = true";
+                PreparedStatement ps1 = conn.prepareStatement(isPublic);
+                ps1.setString(1, bv);
+                ResultSet rs1 = ps1.executeQuery();
+                if(!rs1.next()){
+                    log.error("Cannot find video or video is not public: {}", bv);
+                    return -1;
+                }
                 String sql = "INSERT INTO danmus (bv, mid, content, time, posttime) VALUES (?, ?, ?, ?, ?)";
                 PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
                 ps.setString(1, bv);
