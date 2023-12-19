@@ -10,6 +10,7 @@ import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import io.sustc.dto.DanmuRecord;
 import io.sustc.dto.UserRecord;
@@ -28,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Service
 @Slf4j
+@Transactional
 public class DatabaseServiceImpl implements DatabaseService {
     final static int batchsize = 1000;
 

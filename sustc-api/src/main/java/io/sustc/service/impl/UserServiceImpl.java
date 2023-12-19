@@ -6,6 +6,7 @@ import java.util.ArrayList;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import io.sustc.dto.AuthInfo;
 import io.sustc.dto.RegisterUserReq;
@@ -27,6 +28,7 @@ import java.sql.SQLException;
 
 @Service
 @Slf4j
+@Transactional
 public class UserServiceImpl implements UserService {
     @Autowired
     private DataSource dataSource;
