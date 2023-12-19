@@ -93,7 +93,7 @@ public class VideoServiceImpl implements VideoService {
             Connection conn = dataSource.getConnection();
             if (Authenticate.videoAuthenticate(req, auth, conn) == 0) {
                 try {
-                    PostVideoReq oldreq = getVideoInfo(auth, bv);
+                    PostVideoReq oldreq = getVideoReq(auth, bv);
                     if (oldreq == null) {
                         log.error("Update video failed: bv not found");
                         return false;
@@ -206,69 +206,149 @@ public class VideoServiceImpl implements VideoService {
 
     @Override
     public boolean coinVideo(AuthInfo auth, String bv) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'coinVideo'");
+        try{
+            Connection conn = dataSource.getConnection();
+            Identity identity = Authenticate.authenticate(auth, conn);
+            if (identity == null || !checkVideoExists(bv)) {
+                log.error("Coin video failed: bv not found or user not authenticated");
+                return false;
+            }
+            if (isUserVideoOwner(auth, bv)) {
+                log.error("Coin video failed: user is the owner of the video");
+                return false;
+            }
+
+            Boolean isCoined = getUserVideoInteractionStatus(auth, bv, "is_coined");
+            if (isCoined != null) {
+                updateUserVideoInteraction(auth, bv, "is_coined", !isCoined);
+            } else {
+                String sql = "INSERT INTO user_video_interaction (mid, bv, is_favorited, is_coined, is_liked) VALUES (?, ?, ?, ?, ?);";
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ps.setLong(1, auth.getMid());
+                ps.setString(2, bv);
+                ps.setBoolean(3, false);
+                ps.setBoolean(4, true);
+                ps.setBoolean(5, false);
+                ps.executeUpdate();
+            }
+            log.info("Successfully coin video: {}", bv);
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     @Override
     public boolean likeVideo(AuthInfo auth, String bv) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'likeVideo'");
+        try {
+            Connection conn = dataSource.getConnection();
+            Identity identity = Authenticate.authenticate(auth, conn);
+            if (identity == null || !checkVideoExists(bv)) {
+                log.error("Like video failed: bv not found or user not authenticated");
+                return false;
+            }
+            if (isUserVideoOwner(auth, bv)) {
+                log.error("Like video failed: user is the owner of the video");
+                return false;
+            }
+
+            Boolean isLiked = getUserVideoInteractionStatus(auth, bv, "is_liked");
+            if (isLiked != null) {
+                updateUserVideoInteraction(auth, bv, "is_liked", !isLiked);
+            } else {
+                String sql = "INSERT INTO user_video_interaction (mid, bv, is_favorited, is_coined, is_liked) VALUES (?, ?, ?, ?, ?);";
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ps.setLong(1, auth.getMid());
+                ps.setString(2, bv);
+                ps.setBoolean(3, false);
+                ps.setBoolean(4, false);
+                ps.setBoolean(5, true);
+                ps.executeUpdate();
+            }
+            log.info("Successfully like video: {}", bv);
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     @Override
     public boolean collectVideo(AuthInfo auth, String bv) {
-        try{
+        try {
             Connection conn = dataSource.getConnection();
             Identity identity = Authenticate.authenticate(auth, conn);
-            if (identity == null)
-                return false;
-            String sql = "SELECT * FROM videos WHERE bv = ?;";
-            PreparedStatement ps = conn.prepareStatement(sql);
-            ps.setString(1, bv);
-            ResultSet rs = ps.executeQuery();
-            if (!rs.next()) {
-                log.error("Collect video failed: bv not found");
+            if (identity == null || !checkVideoExists(bv)) {
+                log.error("Collect video failed: bv not found or user not authenticated");
                 return false;
             }
-            sql = "SELECT * FROM user_video_interaction WHERE bv = ? AND mid = ?;";
-            ps = conn.prepareStatement(sql);
-            ps.setString(1, bv);
-            ps.setLong(2, auth.getMid());
-            ResultSet interrs = ps.executeQuery();
-            if (interrs.next()) {
-                if (identity == Identity.USER && rs.getBoolean("ispublic") == false) {
-                    log.error("Cannot be searched by current user : {}:{}",
-                            auth.getMid(), identity);
-                    return false;
-                }else{
-                    Boolean iscollect = interrs.getBoolean("isfavorited");
-                    sql = "UPDATE user_video_interaction SET isfavorited = ? WHERE bv = ? AND mid = ?;";
-                    PreparedStatement collectps = conn.prepareStatement(sql);
-                    collectps.setBoolean(1, !iscollect);
-                    collectps.setString(2, bv);
-                    collectps.setLong(3, auth.getMid());
-                    collectps.executeUpdate();
-                    log.info("Successfully collect video: {}", bv);
-                }
-            }else{
-                sql = "INSERT INTO user_video_interaction (mid, bv, isfavorited, isliked, iscoined) VALUES (?, ?, ?, ?, ?);";
-                PreparedStatement collectps = conn.prepareStatement(sql);
-                collectps.setLong(1, auth.getMid());
-                collectps.setString(2, bv);
-                collectps.setBoolean(3, true);
-                collectps.setBoolean(4, false);
-                collectps.setBoolean(5, false);
-                collectps.executeUpdate();
-                log.info("Successfully collect video: {}", bv);
+            if (isUserVideoOwner(auth, bv)) {
+                log.error("Collect video failed: user is the owner of the video");
+                return false;
             }
+
+            Boolean isFavorited = getUserVideoInteractionStatus(auth, bv, "is_favorited");
+            if (isFavorited != null) {
+                updateUserVideoInteraction(auth, bv, "is_favorited", !isFavorited);
+            } else {
+                String sql = "INSERT INTO user_video_interaction (mid, bv, is_favorited, is_coined, is_liked) VALUES (?, ?, ?, ?, ?);";
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ps.setLong(1, auth.getMid());
+                ps.setString(2, bv);
+                ps.setBoolean(3, true);
+                ps.setBoolean(4, false);
+                ps.setBoolean(5, false);
+                ps.executeUpdate();
+            }
+            log.info("Successfully collect video: {}", bv);
+            return true;
         } catch (SQLException e) {
             e.printStackTrace();
+            return false;
         }
-        return false;
     }
 
-    private PostVideoReq getVideoInfo(AuthInfo auth, String bv) throws SQLException {
+    private Boolean checkVideoExists(String bv) throws SQLException {
+        String sql = "SELECT * FROM videos WHERE bv = ?;";
+        try (Connection conn = dataSource.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, bv);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+    private Boolean getUserVideoInteractionStatus(AuthInfo auth, String bv, String column) throws SQLException {
+        String sql = "SELECT * FROM user_video_interaction WHERE bv = ? AND mid = ?;";
+        try (Connection conn = dataSource.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, bv);
+            ps.setLong(2, auth.getMid());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getBoolean(column);
+                } else {
+                    return null;
+                }
+            }
+        }
+    }
+
+    private void updateUserVideoInteraction(AuthInfo auth, String bv, String column, boolean status)
+            throws SQLException {
+        String sql = "UPDATE user_video_interaction SET " + column + " = ? WHERE bv = ? AND mid = ?;";
+        try (Connection conn = dataSource.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setBoolean(1, status);
+            ps.setString(2, bv);
+            ps.setLong(3, auth.getMid());
+            ps.executeUpdate();
+        }
+    }
+
+    private PostVideoReq getVideoReq(AuthInfo auth, String bv) throws SQLException {
         Connection conn = dataSource.getConnection();
         String sql = "SELECT * FROM videos WHERE bv = ?;";
         PreparedStatement ps = conn.prepareStatement(sql);
@@ -284,6 +364,20 @@ public class VideoServiceImpl implements VideoService {
         req.setDuration(rs.getFloat("duration"));
         req.setPublicTime(rs.getTimestamp("committime"));
         return req;
+    }
+
+    private boolean isUserVideoOwner(AuthInfo auth, String bv) throws SQLException {
+        String sql = "SELECT ownermid FROM videos WHERE bv = ?;";
+        try (Connection conn = dataSource.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, bv);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getLong("ownermid") == auth.getMid();
+                }
+                return false;
+            }
+        }
     }
 
 }
