@@ -19,7 +19,7 @@ public class RecommenderCommand {
     @Autowired
     private RecommenderService recommenderService;
 
-    @ShellMethod("rec general")
+    @ShellMethod(key = "rec general")
     public List<String> generalRecommendations(
             @ShellOption(defaultValue = "1") Integer pageSize,
             @ShellOption(defaultValue = "10") Integer pageNum
@@ -27,7 +27,7 @@ public class RecommenderCommand {
         return recommenderService.generalRecommendations(pageSize, pageNum);
     }
 
-    @ShellMethod("rec user")
+    @ShellMethod(key = "rec user")
     public List<String> recommendVideosForUser(
             @ShellOption(defaultValue = ShellOption.NULL) Long mid,
             @ShellOption(defaultValue = ShellOption.NULL) String pwd,
@@ -46,12 +46,12 @@ public class RecommenderCommand {
         return recommenderService.recommendVideosForUser(auth, pageSize, pageNum);
     }
 
-    @ShellMethod("rec video")
+    @ShellMethod(key = "rec video")
     public List<String> recommendNextVideo(String bv) {
         return recommenderService.recommendNextVideo(bv);
     }
 
-    @ShellMethod("rec friends")
+    @ShellMethod(key = "rec friends")
     public List<Long> recommendFriends(
             @ShellOption(defaultValue = ShellOption.NULL) Long mid,
             @ShellOption(defaultValue = ShellOption.NULL) String pwd,

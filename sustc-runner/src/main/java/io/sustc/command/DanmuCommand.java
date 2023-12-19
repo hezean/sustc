@@ -18,7 +18,7 @@ public class DanmuCommand {
     @Autowired
     private DanmuService danmuService;
 
-    @ShellMethod("danmu send")
+    @ShellMethod(key = "danmu send")
     public long sendDanmu(
             @ShellOption(defaultValue = ShellOption.NULL) Long mid,
             @ShellOption(defaultValue = ShellOption.NULL) String pwd,
@@ -38,7 +38,7 @@ public class DanmuCommand {
         return danmuService.sendDanmu(auth, bv, content, time);
     }
 
-    @ShellMethod("danmu display")
+    @ShellMethod(key = "danmu display")
     public List<Long> displayDanmu(
             String bv,
             Float timeStart,
@@ -48,7 +48,7 @@ public class DanmuCommand {
         return danmuService.displayDanmu(bv, timeStart, timeEnd, filter);
     }
 
-    @ShellMethod("danmu like")
+    @ShellMethod(key = "danmu like")
     public boolean likeDanmu(
             @ShellOption(defaultValue = ShellOption.NULL) Long mid,
             @ShellOption(defaultValue = ShellOption.NULL) String pwd,
