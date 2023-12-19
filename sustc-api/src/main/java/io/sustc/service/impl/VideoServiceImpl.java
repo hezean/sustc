@@ -3,9 +3,13 @@ package io.sustc.service.impl;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -32,7 +36,7 @@ public class VideoServiceImpl implements VideoService {
     @Override
     public String postVideo(AuthInfo auth, PostVideoReq req) {
         try {
-            if (Authenticate.videoAuthenticate(req, auth, dataSource.getConnection())) {
+            if (Authenticate.videoAuthenticate(req, auth, dataSource.getConnection()) == 0) {
                 // generate an uuid by using UUID.randomUUID().toString()
                 String bv = UUID.randomUUID().toString();
                 String sql = "INSERT INTO videos (bv, ownermid, title, description, duration, committime, ispublic) VALUES (?, ?, ?, ?, ?, ?, ?);";
@@ -85,14 +89,101 @@ public class VideoServiceImpl implements VideoService {
 
     @Override
     public boolean updateVideoInfo(AuthInfo auth, String bv, PostVideoReq req) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'updateVideoInfo'");
+        try {
+            Connection conn = dataSource.getConnection();
+            if (Authenticate.videoAuthenticate(req, auth, conn) == 0) {
+                try {
+                    PostVideoReq oldreq = getVideoInfo(auth, bv);
+                    if (oldreq == null) {
+                        log.error("Update video failed: bv not found");
+                        return false;
+                    }
+                    if (oldreq.getDuration() != req.getDuration()) {
+                        log.error("Update video failed: duration cannot be changed");
+                        return false;
+                    } else if (oldreq.getDescription() == req.getDescription() && oldreq.getTitle() == req.getTitle()
+                            && oldreq.getPublicTime() == req.getPublicTime()) {
+                        log.error("Update video failed: no change");
+                        return false;
+                    }
+                    String sql = "UPDATE videos SET title = ?, description = ?, duration = ?, committime = ? WHERE bv = ?;";
+                    PreparedStatement ps = conn.prepareStatement(sql);
+                    ps.setString(1, req.getTitle());
+                    ps.setString(2, req.getDescription());
+                    ps.setFloat(3, req.getDuration());
+                    ps.setTimestamp(4, req.getPublicTime());
+                    ps.setString(5, bv);
+                    ps.executeUpdate();
+                    log.info("Successfully update video: {}", bv);
+                    return true;
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                log.error("Update video failed: authentication failed");
+                return false;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     @Override
     public List<String> searchVideo(AuthInfo auth, String keywords, int pageSize, int pageNum) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'searchVideo'");
+        Connection conn;
+        try {
+            conn = dataSource.getConnection();
+            if (keywords == null || keywords == "") {
+                log.error("Search video failed: keywords is null");
+                return null;
+            } else if (Authenticate.authenticate(auth, conn) == null) {
+                log.error("Search video failed: authentication failed");
+                return null;
+            } else {
+                try {
+                    // split keywords by space
+                    String[] keyword = keywords.split(" ");
+                    String titlesql = "SELECT bv FROM videos WHERE title LIKE ?;";
+                    String descriptionsql = "SELECT bv FROM videos WHERE description LIKE ?;";
+                    PreparedStatement titleps = conn.prepareStatement(titlesql);
+                    PreparedStatement descriptionps = conn.prepareStatement(descriptionsql);
+                    List<String> bvlist = new ArrayList<String>();
+                    for (int i = 0; i < keyword.length; i++) {
+                        titleps.setString(1, "%" + keyword[i] + "%");
+                        ResultSet rs1 = titleps.executeQuery();
+                        while (rs1.next()) {
+                            bvlist.add(rs1.getString("bv"));
+                        }
+                        descriptionps.setString(1, "%" + keyword[i] + "%");
+                        ResultSet rs2 = descriptionps.executeQuery();
+                        while (rs2.next()) {
+                            bvlist.add(rs2.getString("bv"));
+                        }
+                    }
+                    for (int i = 0; i < keyword.length; i++) {
+                        descriptionps.setString(1, "%" + keyword[i] + "%");
+                        ResultSet rs = descriptionps.executeQuery();
+                        while (rs.next()) {
+                            bvlist.add(rs.getString("bv"));
+                        }
+                    }
+                    List<String> sortedBvList = bvlist.stream()
+                            .collect(Collectors.groupingBy(Function.identity(), Collectors.counting())) // 计算每个元素的出现次数
+                            .entrySet().stream()
+                            .sorted(Map.Entry.<String, Long>comparingByValue().reversed()) // 根据出现次数进行排序
+                            .map(Map.Entry::getKey) // 获取元素
+                            .collect(Collectors.toList()); // 转换为 List
+                    log.info("Successfully search video: {}", bvlist);
+                    return sortedBvList;
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     @Override
@@ -129,6 +220,24 @@ public class VideoServiceImpl implements VideoService {
     public boolean collectVideo(AuthInfo auth, String bv) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'collectVideo'");
+    }
+
+    private PostVideoReq getVideoInfo(AuthInfo auth, String bv) throws SQLException {
+        Connection conn = dataSource.getConnection();
+        String sql = "SELECT * FROM videos WHERE bv = ?;";
+        PreparedStatement ps = conn.prepareStatement(sql);
+        ps.setString(1, bv);
+        ResultSet rs = ps.executeQuery();
+        if (!rs.next()) {
+            log.error("Get video info failed: bv not found");
+            return null;
+        }
+        PostVideoReq req = new PostVideoReq();
+        req.setTitle(rs.getString("title"));
+        req.setDescription(rs.getString("description"));
+        req.setDuration(rs.getFloat("duration"));
+        req.setPublicTime(rs.getTimestamp("committime"));
+        return req;
     }
 
 }

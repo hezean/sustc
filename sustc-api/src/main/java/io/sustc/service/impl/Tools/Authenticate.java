@@ -47,16 +47,16 @@ public class Authenticate {
         return Identity.valueOf(rs.getString("identity").toUpperCase());
     }
 
-    public static boolean videoAuthenticate(PostVideoReq req,AuthInfo auth, Connection conn) throws SQLException {
+    public static int videoAuthenticate(PostVideoReq req,AuthInfo auth, Connection conn) throws SQLException {
         if(authenticate(auth, conn) == null||req.getTitle() == null||req.getTitle() ==""){
             log.error("Authentication failed: mid not found in auth_info");
-            return false;
+            return -1;
         }else if (req.getDuration() <= 10){
             log.error("Authentication failed: duration is too short");
-            return false;
+            return -1;
         }else if (req.getPublicTime().getTime() < System.currentTimeMillis()){
             log.error("Authentication failed: publicTime is earlier than now");
-            return false;
+            return -1;
         }else {
             String sql = "SELECT * FROM videos WHERE ownermid = ? AND title = ?;";
             PreparedStatement ps = conn.prepareStatement(sql);
@@ -64,11 +64,11 @@ public class Authenticate {
             ps.setString(2, req.getTitle());
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
-                log.error("Authentication failed: duplicate title for the same owner");
-                return false;
+                log.info("Authentication success with duplicate title");
+                return 1;
             }
-            log.info("Authentication success: video {} is valid", req.getTitle());
-            return true;
+            log.info("Authentication success with new title");
+            return 0;
         }
     }
 }
