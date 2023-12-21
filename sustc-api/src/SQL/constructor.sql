@@ -43,26 +43,6 @@ CREATE TABLE user_video_interaction (
     PRIMARY KEY (mid, bv)
 );
 
--- -- UserVideoFavorite Table
--- CREATE TABLE user_video_favorite (
---     mid BIGINT REFERENCES users(mid),
---     bv VARCHAR(50) REFERENCES videos(bv),
---     PRIMARY KEY (mid, bv)
--- );
---
--- -- UserVideoLike Table
--- CREATE TABLE user_video_like (
---     mid BIGINT REFERENCES users(mid),
---     bv VARCHAR(50) REFERENCES videos(bv),
---     PRIMARY KEY (mid, bv)
--- );
---
--- -- UserVideoCoin Table
--- CREATE TABLE user_video_coin (
---     mid BIGINT REFERENCES users(mid),
---     bv VARCHAR(50) REFERENCES videos(bv),
---     PRIMARY KEY (mid, bv)
--- );
 
 -- UserVideoWatch Table
 CREATE TABLE user_video_watch (
@@ -95,3 +75,24 @@ CREATE TABLE danmu_like (
     mid BIGINT REFERENCES users(mid),
     PRIMARY KEY (danmuId, mid)
 );
+
+-- -- UserVideoFavorite Table
+-- CREATE TABLE user_video_favorite (
+--     mid BIGINT REFERENCES users(mid),
+--     bv VARCHAR(50) REFERENCES videos(bv),
+--     PRIMARY KEY (mid, bv)
+-- );
+--
+-- -- UserVideoLike Table
+-- CREATE TABLE user_video_like (
+--     mid BIGINT REFERENCES users(mid),
+--     bv VARCHAR(50) REFERENCES videos(bv),
+--     PRIMARY KEY (mid, bv)
+-- );
+--
+-- -- UserVideoCoin Table
+-- CREATE TABLE user_video_coin (
+--     mid BIGINT REFERENCES users(mid),
+--     bv VARCHAR(50) REFERENCES videos(bv),
+--     PRIMARY KEY (mid, bv)
+-- );
