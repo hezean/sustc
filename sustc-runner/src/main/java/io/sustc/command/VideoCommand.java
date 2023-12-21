@@ -21,7 +21,7 @@ public class VideoCommand {
     @Autowired
     private VideoService videoService;
 
-    @ShellMethod("video post")
+    @ShellMethod(key = "video post")
     public String postVideo(
             @ShellOption(defaultValue = ShellOption.NULL) Long mid,
             @ShellOption(defaultValue = ShellOption.NULL) String pwd,
@@ -48,7 +48,7 @@ public class VideoCommand {
         return videoService.postVideo(auth, req);
     }
 
-    @ShellMethod("video delete")
+    @ShellMethod(key = "video delete")
     public boolean deleteVideo(
             @ShellOption(defaultValue = ShellOption.NULL) Long mid,
             @ShellOption(defaultValue = ShellOption.NULL) String pwd,
@@ -66,7 +66,7 @@ public class VideoCommand {
         return videoService.deleteVideo(auth, bv);
     }
 
-    @ShellMethod("video update")
+    @ShellMethod(key = "video update")
     public boolean updateVideoInfo(
             @ShellOption(defaultValue = ShellOption.NULL) Long mid,
             @ShellOption(defaultValue = ShellOption.NULL) String pwd,
@@ -94,7 +94,7 @@ public class VideoCommand {
         return videoService.updateVideoInfo(auth, bv, req);
     }
 
-    @ShellMethod("video search")
+    @ShellMethod(key = "video search")
     public List<String> searchVideo(
             @ShellOption(defaultValue = ShellOption.NULL) Long mid,
             @ShellOption(defaultValue = ShellOption.NULL) String pwd,
@@ -114,17 +114,17 @@ public class VideoCommand {
         return videoService.searchVideo(auth, keywords, pageSize, pageNum);
     }
 
-    @ShellMethod("video viewrate")
+    @ShellMethod(key = "video viewrate")
     public double getAverageViewRate(String bv) {
         return videoService.getAverageViewRate(bv);
     }
 
-    @ShellMethod("video hotspot")
+    @ShellMethod(key = "video hotspot")
     public Set<Integer> getHotspot(String bv) {
         return videoService.getHotspot(bv);
     }
 
-    @ShellMethod("video review")
+    @ShellMethod(key = "video review")
     public boolean reviewVideo(
             @ShellOption(defaultValue = ShellOption.NULL) Long mid,
             @ShellOption(defaultValue = ShellOption.NULL) String pwd,
@@ -142,7 +142,7 @@ public class VideoCommand {
         return videoService.reviewVideo(auth, bv);
     }
 
-    @ShellMethod("video coin")
+    @ShellMethod(key = "video coin")
     public boolean coinVideo(
             @ShellOption(defaultValue = ShellOption.NULL) Long mid,
             @ShellOption(defaultValue = ShellOption.NULL) String pwd,
@@ -160,7 +160,7 @@ public class VideoCommand {
         return videoService.coinVideo(auth, bv);
     }
 
-    @ShellMethod("video like")
+    @ShellMethod(key = "video like")
     public boolean likeVideo(
             @ShellOption(defaultValue = ShellOption.NULL) Long mid,
             @ShellOption(defaultValue = ShellOption.NULL) String pwd,
@@ -178,7 +178,7 @@ public class VideoCommand {
         return videoService.likeVideo(auth, bv);
     }
 
-    @ShellMethod("video collect")
+    @ShellMethod(key = "video collect")
     public boolean collectVideo(
             @ShellOption(defaultValue = ShellOption.NULL) Long mid,
             @ShellOption(defaultValue = ShellOption.NULL) String pwd,

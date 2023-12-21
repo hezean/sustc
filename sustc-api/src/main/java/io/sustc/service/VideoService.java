@@ -35,6 +35,7 @@ public interface VideoService {
      * Deletes a video.
      * This operation can be performed by the video owner or a superuser.
      * The coins of this video will not be returned to their donators.
+     * Likewise, the likes, favorites, etc. of this video will be removed as well.
      *
      * @param auth the current user's authentication information
      * @param bv   the video's {@code bv}
