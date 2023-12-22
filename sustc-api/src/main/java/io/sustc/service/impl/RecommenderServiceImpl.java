@@ -74,28 +74,29 @@ public class RecommenderServiceImpl implements io.sustc.service.RecommenderServi
 
         List<String> recommendations = new ArrayList<>();
         String sql = "SELECT " +
-            "v.bv, " +
-            "COALESCE(vs.like_rate, 0) + COALESCE(vs.coin_rate, 0) + COALESCE(vs.fav_rate, 0) + COALESCE(va.avg_finish, 0) + COALESCE(danmu_avg, 0) AS total_score " +
-            "FROM " +
-            "videos v " +
-            "LEFT JOIN " +
-            "video_stats vs ON v.bv = vs.bv " +
-            "LEFT JOIN " +
-            "video_aggregates va ON v.bv = va.bv " +
-            "LEFT JOIN ( " +
-            "    SELECT " +
-            "        bv, " +
-            "        COUNT(*) / NULLIF(COUNT(DISTINCT mid), 0) AS danmu_avg " +
-            "    FROM " +
-            "        danmus " +
-            "    GROUP BY " +
-            "        bv " +
-            ") danmu_data ON v.bv = danmu_data.bv " +
-            "ORDER BY " +
-            "    total_score DESC " +
-            "OFFSET ? LIMIT ?";
+                "v.bv, " +
+                "COALESCE(vs.like_rate, 0) + COALESCE(vs.coin_rate, 0) + COALESCE(vs.fav_rate, 0) + COALESCE(va.avg_finish, 0) + COALESCE(danmu_avg, 0) AS total_score "
+                +
+                "FROM " +
+                "videos v " +
+                "LEFT JOIN " +
+                "video_stats vs ON v.bv = vs.bv " +
+                "LEFT JOIN " +
+                "video_aggregates va ON v.bv = va.bv " +
+                "LEFT JOIN ( " +
+                "    SELECT " +
+                "        bv, " +
+                "        COUNT(*) / NULLIF(COUNT(DISTINCT mid), 0) AS danmu_avg " +
+                "    FROM " +
+                "        danmus " +
+                "    GROUP BY " +
+                "        bv " +
+                ") danmu_data ON v.bv = danmu_data.bv " +
+                "ORDER BY " +
+                "    total_score DESC " +
+                "OFFSET ? LIMIT ?";
         try (Connection conn = dataSource.getConnection();
-            PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
             int offset = (pageNum - 1) * pageSize;
             pstmt.setInt(1, offset);
             pstmt.setInt(2, pageSize);
@@ -115,11 +116,11 @@ public class RecommenderServiceImpl implements io.sustc.service.RecommenderServi
 
     @Override
     public List<String> recommendVideosForUser(AuthInfo auth, int pageSize, int pageNum) {
-        try(Connection conn = dataSource.getConnection()){
-            if(Authenticate.authenticate(auth, conn) == null){
+        try (Connection conn = dataSource.getConnection()) {
+            if (Authenticate.authenticate(auth, conn) == null) {
                 log.error("Invalid auth");
                 return null;
-            }else{
+            } else {
                 String sql = "SELECT recommend_videos_for_user(?,?,?);";
                 PreparedStatement ps = conn.prepareStatement(sql);
                 ps.setLong(1, auth.getMid());
@@ -147,8 +148,50 @@ public class RecommenderServiceImpl implements io.sustc.service.RecommenderServi
 
     @Override
     public List<Long> recommendFriends(AuthInfo auth, int pageSize, int pageNum) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'recommendFriends'");
+        try (Connection conn = dataSource.getConnection()) {
+            if (Authenticate.authenticate(auth, conn) == null) {
+                log.error("Invalid auth");
+                return null;
+            } else {
+                String sql = "SELECT ur2.followerMid AS recommendedUserId, COUNT(*) AS commonFollowings, u.level " +
+                        "FROM user_relationships ur1 " +
+                        "JOIN user_relationships ur2 ON ur1.followingMid = ur2.followingMid " +
+                        "JOIN users u ON ur2.followerMid = u.mid " +
+                        "WHERE ur1.followerMid = ? " +
+                        "AND ur2.followerMid != ? " +
+                        "AND NOT EXISTS ( " +
+                        "    SELECT 1 " +
+                        "    FROM user_relationships ur3 " +
+                        "    WHERE ur3.followerMid = ? AND ur3.followingMid = ur2.followerMid " +
+                        ") " +
+                        "GROUP BY ur2.followerMid, u.level " +
+                        "ORDER BY commonFollowings DESC, u.level " +
+                        "LIMIT ? OFFSET ?";
+
+                PreparedStatement pstmt = conn.prepareStatement(sql);
+
+                pstmt.setLong(1, auth.getMid());
+                pstmt.setLong(2, auth.getMid());
+                pstmt.setLong(3, auth.getMid());
+                pstmt.setInt(4, pageSize);
+                pstmt.setInt(5, (pageNum - 1) * pageSize);
+                ResultSet rs = pstmt.executeQuery();
+                List<Long> recommendedUserIds = new ArrayList<>();
+                while (rs.next()) {
+                    recommendedUserIds.add(rs.getLong("recommendedUserId"));
+                }
+                if (recommendedUserIds.size() == 0) {
+                    log.info("No similar users found, or the user does not exist");
+                    return null;
+                }
+                log.info("Successfully get the result of recommendFriends");
+                return recommendedUserIds;
+            }
+        } catch (Exception e) {
+            log.error("Failed to get the result of recommendFriends");
+            e.printStackTrace();
+            return null;
+        }
     }
 
 }

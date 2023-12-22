@@ -21,7 +21,7 @@ import javax.sql.DataSource;
 public class VideoDataUploader {
     private static final int THREAD_POOL_SIZE = 10; // 根据需要调整线程池大小
     private final DataSource dataSource;
-    private static final int BATCH_SIZE = 20;
+    private static final int BATCH_SIZE = 50;
 
     @Autowired
     public VideoDataUploader(DataSource dataSource) {

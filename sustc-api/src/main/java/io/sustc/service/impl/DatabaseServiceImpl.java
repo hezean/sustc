@@ -72,6 +72,7 @@ public class DatabaseServiceImpl implements DatabaseService {
             DanmuDataUploader danmuUploader = new DanmuDataUploader(dataSource);
             danmuUploader.uploadData(danmuRecords);
             long end = System.currentTimeMillis();
+            preCaculate();
             log.info("Importing data finished, time: {}ms", end - start);
 
         } catch (SQLException e) {
@@ -127,6 +128,43 @@ public class DatabaseServiceImpl implements DatabaseService {
             ResultSet rs = stmt.executeQuery();
             rs.next();
             return rs.getInt(1);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void preCaculate() {
+        String sql = "INSERT INTO video_interactions_aggregates (bv, like_count, coin_count, fav_count)" +
+                "SELECT bv," +
+                "SUM(is_liked::int) AS like_count," +
+                "SUM(is_coined::int) AS coin_count," +
+                "SUM(is_favorited::int) AS fav_count " +
+                "FROM user_video_interaction " +
+                "GROUP BY bv " +
+                "ON CONFLICT (bv) DO UPDATE " +
+                "SET like_count = EXCLUDED.like_count, " +
+                "coin_count = EXCLUDED.coin_count, " +
+                "fav_count = EXCLUDED.fav_count; " +
+                "INSERT INTO video_stats (bv, like_rate, coin_rate, fav_rate) " +
+                "SELECT " +
+                "v.bv, " +
+                "SUM(uvi.is_liked::int)::FLOAT / NULLIF(COUNT(uvi.*), 0) AS like_rate, " +
+                "SUM(uvi.is_coined::int)::FLOAT / NULLIF(COUNT(uvi.*), 0) AS coin_rate, " +
+                "SUM(uvi.is_favorited::int)::FLOAT / NULLIF(COUNT(uvi.*), 0) AS fav_rate " +
+                "FROM " +
+                "videos v " +
+                "LEFT JOIN " +
+                "user_video_interaction uvi ON v.bv = uvi.bv " +
+                "GROUP BY " +
+                "v.bv " +
+                "ON CONFLICT (bv) DO UPDATE " +
+                "SET " +
+                "like_rate = EXCLUDED.like_rate, " +
+                "coin_rate = EXCLUDED.coin_rate, " +
+                "fav_rate = EXCLUDED.fav_rate;";
+        try (Connection conn = dataSource.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.execute();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
