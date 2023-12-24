@@ -4,6 +4,11 @@ spring:
     username: sustc  # change this to your own username (avoid using a superuser)
     password: sustc  # change this to your own password
 
+logging:
+  level:
+    root: off
+    io.sustc: debug
+
 ---
 
 benchmark:

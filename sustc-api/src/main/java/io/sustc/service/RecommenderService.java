@@ -81,8 +81,9 @@ public interface RecommenderService {
     /**
      * Recommends friends for a user, based on their common followings.
      * Find all users that are not currently followed by the user, and have at least one common following with the user.
-     * Sort the users by the number of common followings, if two users have the same number of common followings,
-     * sort them by their {@code level}.
+     * Sort the users by the number of common followings in descending order.
+     * If two users have the same number of common followings,
+     * sort them by their {@code level} in descending order, then by their {@code mid} in ascending order.
      *
      * @param auth     the current user's authentication information to be recommended
      * @param pageSize the page size, if there are less than {@code pageSize} users, return all of them
