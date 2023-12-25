@@ -9,6 +9,8 @@ public interface RecommenderService {
     /**
      * Recommends a list of top 5 similar videos for a video.
      * The similarity is defined as the number of users (in the database) who have watched both videos.
+     * If two videos have the same similarity,
+     * sort them by their {@code bv} in ascending order,
      *
      * @param bv the current video
      * @return a list of video {@code bv}s
