@@ -38,9 +38,7 @@ public class PostVideoReq implements Serializable {
      * When posting a video, the owner can decide when to make it public.
      * Before the public time, the video is only visible to the owner and superusers.
      * <p>
-     * If the video is already published
-     * (when this DTO is used to {@link io.sustc.service.VideoService#updateVideoInfo(AuthInfo, String, PostVideoReq)}
-     * update a video), this field should be ignored.
+     * This field can't be null.
      */
     private Timestamp publicTime;
 }
