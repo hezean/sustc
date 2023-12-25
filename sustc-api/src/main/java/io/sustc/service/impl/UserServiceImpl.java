@@ -3,6 +3,7 @@ package io.sustc.service.impl;
 import java.time.LocalDate;
 
 import java.util.ArrayList;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -41,15 +42,20 @@ public class UserServiceImpl implements UserService {
             return -1;
         }
         if (req.getName() == null || req.getName().equals("")) {
-            req.setName("fuck" + System.currentTimeMillis());
+            req.setName(UUID.randomUUID().toString());
         }
         if (req.getSex() == null) {
             log.warn("Sex is null, set to UNKNOWN.");
             req.setSex(Gender.UNKNOWN);
         }
+        LocalDate birthday = ParseDate.parseDate(req.getBirthday());
+        if (birthday == null || birthday.equals(LocalDate.of(2000, 1, 1))){
+            log.error("Date parse failed: {}", req.getBirthday());
+            return -1;
+        }
 
-        try {
-            Connection conn = dataSource.getConnection();
+        try(Connection conn = dataSource.getConnection();) {
+            
             String sql = "SELECT * FROM auth_info WHERE qq = ? OR wechat = ?";
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setString(1, req.getQq());
@@ -87,10 +93,7 @@ public class UserServiceImpl implements UserService {
         psuser.setLong(1, mid);
         psuser.setString(2, req.getName());
         psuser.setString(3, req.getSex().toString());
-        LocalDate birthday = ParseDate.parseDate(req.getBirthday());
-        if (birthday == null)
-            birthday = LocalDate.now();
-        psuser.setDate(4, Date.valueOf(birthday));
+        psuser.setDate(4, Date.valueOf(ParseDate.parseDate(req.getBirthday())));
         psuser.setInt(5, 0);
         psuser.setString(7, "user");
         psuser.setString(6, null);
@@ -109,9 +112,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean deleteAccount(AuthInfo auth, long mid) {
-        try {
-            Connection conn = dataSource.getConnection();
+        try (Connection conn = dataSource.getConnection();){
+            
             Identity identity = Authenticate.authenticate(auth, conn);
+            auth.setMid(Authenticate.getMid(auth, conn));
             if (identity == null) {
                 return false;
             } else {
@@ -120,7 +124,8 @@ public class UserServiceImpl implements UserService {
                     return false;
                 } else if (identity == Identity.SUPERUSER && auth.getMid() != mid
                         && Authenticate.checkIdentity(mid, conn) != Identity.USER) {
-                    log.error("Authentication failed: superuser can't delete another superuser's account.");
+                    log.error("Authentication failed: superuser{} can't delete another superuser{}'s account.",
+                            auth.getMid(), mid);
                     return false;
                 }
                 String usersql = "DELETE FROM users WHERE mid = ?";
@@ -165,16 +170,22 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean follow(AuthInfo auth, long followeeMid) {
 
-        try {
-            Connection conn = dataSource.getConnection();
+        try(Connection conn = dataSource.getConnection();) {
+            
             Identity identity = Authenticate.authenticate(auth, conn);
+            auth.setMid(Authenticate.getMid(auth, conn));
             if (identity == null) {
                 return false;
             } else {
                 String sql = "SELECT * FROM user_relationships WHERE followermid = ? AND followingmid = ?";
                 PreparedStatement ps = conn.prepareStatement(sql);
+                auth.setMid(getMid(auth, conn));
                 ps.setLong(1, auth.getMid());
                 ps.setLong(2, followeeMid);
+                if(followeeMid == auth.getMid()){
+                    log.error("Authentication failed: user can't follow himself.");
+                    return false;
+                }
                 ResultSet rs = ps.executeQuery();
                 if (rs.next()) {
                     String sql1 = "DELETE FROM user_relationships WHERE followermid = ? AND followingmid = ?";
@@ -183,7 +194,7 @@ public class UserServiceImpl implements UserService {
                     ps1.setLong(2, followeeMid);
                     ps1.executeUpdate();
                     log.info("Successfully unfollow user: " + followeeMid);
-                    return true;
+                    return false;
                 } else {
                     String sql1 = "INSERT INTO user_relationships (followermid, followingmid) VALUES (?, ?)";
                     PreparedStatement ps1 = conn.prepareStatement(sql1);
@@ -267,9 +278,11 @@ public class UserServiceImpl implements UserService {
             resp.setWatched(watched.toArray(new String[posted.size()]));
 
             followerps.setLong(1, mid);
-            ResultSet followerrs = followerps.executeQuery();
+            followingps.setLong(1, mid);
+            ResultSet followingrs = followerps.executeQuery();
+            ResultSet followerrs = followingps.executeQuery();
             while (followerrs.next()) {
-                Long follower_id = followerrs.getLong("followingmid");
+                Long follower_id = followerrs.getLong("followermid");
                 followerList.add(follower_id);
             }
             long[] longArray = new long[followerList.size()];
@@ -278,10 +291,10 @@ public class UserServiceImpl implements UserService {
             }
             resp.setFollower(longArray);
 
-            followingps.setLong(1, mid);
-            ResultSet followingrs = followingps.executeQuery();
+            
+            
             while (followingrs.next()) {
-                Long following_id = followingrs.getLong("followermid");
+                Long following_id = followingrs.getLong("followingmid");
                 followingList.add(following_id);
             }
             long[] longArray2 = new long[followingList.size()];
@@ -295,6 +308,34 @@ public class UserServiceImpl implements UserService {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public static long getMid(AuthInfo auth, Connection conn){
+        try{
+            String pattern = "";
+            if(auth.getMid() != 0){
+                return auth.getMid();
+            }else if(auth.getQq() != null){
+                pattern = auth.getQq();
+            }else if(auth.getWechat() != null){
+                pattern = auth.getWechat();
+            }else{
+                return -1;
+            }
+            String sql = "SELECT * FROM auth_info WHERE qq = ? OR wechat = ?";
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setString(1, pattern);
+            ps.setString(2, pattern);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getLong("mid");
+            } else {
+                return -1;
+            }
+        }catch(Exception e){
+            e.printStackTrace();
+            return -1;
+        }
     }
 
 }

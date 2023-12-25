@@ -3,7 +3,6 @@ package io.sustc.service.impl;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.*;
 
 import javax.sql.DataSource;
@@ -30,21 +29,28 @@ public class VideoServiceImpl implements VideoService {
 
     @Override
     public String postVideo(AuthInfo auth, PostVideoReq req) {
-        try {
-            if (Authenticate.videoAuthenticate(req, auth, dataSource.getConnection()) == 0) {
+        try (Connection conn = dataSource.getConnection();) {
+            if (Authenticate.videoAuthenticate(req, auth, conn) == 0) {
+                auth.setMid(Authenticate.getMid(auth, conn));
                 // generate an uuid by using UUID.randomUUID().toString()
                 String bv = UUID.randomUUID().toString();
                 String sql = "INSERT INTO videos (bv, ownermid, title, description, duration, committime, ispublic) VALUES (?, ?, ?, ?, ?, ?, ?);";
-                PreparedStatement ps = dataSource.getConnection().prepareStatement(sql);
+                PreparedStatement ps = conn.prepareStatement(sql);
                 ps.setString(1, bv);
                 ps.setLong(2, auth.getMid());
                 ps.setString(3, req.getTitle());
                 ps.setString(4, req.getDescription());
                 ps.setFloat(5, req.getDuration());
-                ps.setTimestamp(6, req.getPublicTime());
+                if (req.getPublicTime() == null) {
+                    log.error("Post video failed: publicTime is null");
+                    return null;
+                } else {
+                    ps.setTimestamp(6, req.getPublicTime());
+                }
                 ps.setBoolean(7, false);
                 ps.executeUpdate();
                 log.info("Successfully post video: {}", bv);
+                Global.need_to_update = true;
                 return bv;
             }
         } catch (SQLException e) {
@@ -55,9 +61,10 @@ public class VideoServiceImpl implements VideoService {
 
     @Override
     public boolean deleteVideo(AuthInfo auth, String bv) {
-        try {
-            Connection conn = dataSource.getConnection();
+        try (Connection conn = dataSource.getConnection();) {
+
             Identity identity = Authenticate.authenticate(auth, conn);
+            auth.setMid(Authenticate.getMid(auth, conn));
             if (identity == null)
                 return false;
             String sql = "SELECT ownermid FROM videos WHERE bv = ?;";
@@ -68,13 +75,36 @@ public class VideoServiceImpl implements VideoService {
                 log.error("Delete video failed: bv not found");
                 return false;
             }
-            if (rs.getLong("ownermid") == auth.getMid() || identity == Identity.SUPERUSER) {
+            if (rs.getLong("ownermid") == auth.getMid() || (identity == Identity.SUPERUSER)){
+                    // && !(Authenticate.checkIdentity(rs.getLong("ownermid"), conn) == Identity.SUPERUSER))) {
+                String watch = "DELETE FROM user_video_watch WHERE bv = ?;";
+                PreparedStatement watchps = conn.prepareStatement(watch);
+                watchps.setString(1, bv);
+                watchps.executeUpdate();
+                String interaction = "DELETE FROM user_video_interaction WHERE bv = ?;";
+                PreparedStatement interactionps = conn.prepareStatement(interaction);
+                interactionps.setString(1, bv);
+                interactionps.executeUpdate();
+                String danmulike = "DELETE FROM danmu_like WHERE danmuid IN (SELECT id FROM danmus WHERE bv = ?);";
+                PreparedStatement danmulikeps = conn.prepareStatement(danmulike);
+                danmulikeps.setString(1, bv);
+                danmulikeps.executeUpdate();
+                String danmu = "DELETE FROM danmus WHERE bv = ?;";
+                PreparedStatement danmups = conn.prepareStatement(danmu);
+                danmups.setString(1, bv);
+                danmups.executeUpdate();
+
                 sql = "DELETE FROM videos WHERE bv = ?;";
                 ps = conn.prepareStatement(sql);
                 ps.setString(1, bv);
                 ps.executeUpdate();
                 log.info("Successfully delete video: {}", bv);
+                Global.need_to_update = true;
                 return true;
+            } else {
+                log.error("Delete video failed: permission denied: ownermid is {} and authmid is {}",
+                        rs.getLong("ownermid"), auth.getMid());
+                return false;
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -84,9 +114,10 @@ public class VideoServiceImpl implements VideoService {
 
     @Override
     public boolean updateVideoInfo(AuthInfo auth, String bv, PostVideoReq req) {
-        try {
-            Connection conn = dataSource.getConnection();
+        try (Connection conn = dataSource.getConnection();) {
+
             if (Authenticate.videoAuthenticate(req, auth, conn) == 0) {
+                auth.setMid(Authenticate.getMid(auth, conn));
                 try {
                     PostVideoReq oldreq = getVideoReq(auth, bv, conn);
                     if (oldreq == null) {
@@ -106,9 +137,14 @@ public class VideoServiceImpl implements VideoService {
                     ps.setString(1, req.getTitle());
                     ps.setString(2, req.getDescription());
                     ps.setFloat(3, req.getDuration());
-                    ps.setTimestamp(4, req.getPublicTime());
-                    ps.setString(5, bv);
-                    ps.setBoolean(6, false);
+                    if (req.getPublicTime() == null) {
+                        log.error("Post video failed: publicTime is null");
+                        return false;
+                    } else {
+                        ps.setTimestamp(6, req.getPublicTime());
+                    }
+                    ps.setString(6, bv);
+                    ps.setBoolean(5, false);
                     ps.executeUpdate();
                     log.info("Successfully update video: {}", bv);
                     return true;
@@ -127,9 +163,7 @@ public class VideoServiceImpl implements VideoService {
 
     @Override
     public List<String> searchVideo(AuthInfo auth, String keywords, int pageSize, int pageNum) {
-        Connection conn;
-        try {
-            conn = dataSource.getConnection();
+        try (Connection conn = dataSource.getConnection();) {
             if (keywords == null || keywords == "") {
                 log.error("Search video failed: keywords is null");
                 return null;
@@ -137,6 +171,7 @@ public class VideoServiceImpl implements VideoService {
                 log.error("Search video failed: authentication failed");
                 return null;
             } else {
+                auth.setMid(Authenticate.getMid(auth, conn));
                 try {
                     // split keywords by space
                     String[] keyword = keywords.split(" ");
@@ -208,13 +243,13 @@ public class VideoServiceImpl implements VideoService {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
         return null;
     }
 
     @Override
     public double getAverageViewRate(String bv) {
-        try {
-            Connection conn = dataSource.getConnection();
+        try (Connection conn = dataSource.getConnection();) {
             if (!checkVideoExists(bv, conn)) {
                 log.error("Get average view rate failed: bv not found");
                 return -1;
@@ -249,8 +284,8 @@ public class VideoServiceImpl implements VideoService {
 
     @Override
     public Set<Integer> getHotspot(String bv) {
-        try {
-            Connection conn = dataSource.getConnection();
+        try (Connection conn = dataSource.getConnection();) {
+
             if (!checkVideoExists(bv, conn)) {
                 log.error("Get hotspot failed: bv not found");
                 return null;
@@ -301,9 +336,10 @@ public class VideoServiceImpl implements VideoService {
 
     @Override
     public boolean reviewVideo(AuthInfo auth, String bv) {
-        try {
-            Connection conn = dataSource.getConnection();
+        try (Connection conn = dataSource.getConnection();) {
+
             Identity identity = Authenticate.authenticate(auth, conn);
+            auth.setMid(Authenticate.getMid(auth, conn));
             if (identity != Identity.SUPERUSER) {
                 log.error("Review video failed: permission denied");
                 return false;
@@ -320,6 +356,10 @@ public class VideoServiceImpl implements VideoService {
             PreparedStatement checkps = conn.prepareStatement(sql);
             checkps.setString(1, bv);
             ResultSet rs = checkps.executeQuery();
+            if (!rs.next()) {
+                log.error("Review video failed: bv not found");
+                return false;
+            }
             if (rs.getBoolean("ispublic")) {
                 log.error("Review video failed: video has been reviewed");
                 return false;
@@ -340,9 +380,10 @@ public class VideoServiceImpl implements VideoService {
 
     @Override
     public boolean coinVideo(AuthInfo auth, String bv) {
-        try {
-            Connection conn = dataSource.getConnection();
+        try (Connection conn = dataSource.getConnection();) {
+
             Identity identity = Authenticate.authenticate(auth, conn);
+            auth.setMid(Authenticate.getMid(auth, conn));
             if (identity == null || !checkVideoExists(bv, conn)) {
                 log.error("Coin video failed: bv not found or user not authenticated");
                 return false;
@@ -370,6 +411,7 @@ public class VideoServiceImpl implements VideoService {
                 ps.executeUpdate();
             }
             log.info("Successfully coin video: {}", bv);
+            Global.need_to_update = true;
             return true;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -379,9 +421,9 @@ public class VideoServiceImpl implements VideoService {
 
     @Override
     public boolean likeVideo(AuthInfo auth, String bv) {
-        try {
-            Connection conn = dataSource.getConnection();
+        try (Connection conn = dataSource.getConnection();) {
             Identity identity = Authenticate.authenticate(auth, conn);
+            auth.setMid(Authenticate.getMid(auth, conn));
             if (identity == null || !checkVideoExists(bv, conn)) {
                 log.error("Like video failed: bv not found or user not authenticated");
                 return false;
@@ -409,6 +451,7 @@ public class VideoServiceImpl implements VideoService {
                 ps.executeUpdate();
             }
             log.info("Successfully like video: {}", bv);
+            Global.need_to_update = true;
             return true;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -418,9 +461,10 @@ public class VideoServiceImpl implements VideoService {
 
     @Override
     public boolean collectVideo(AuthInfo auth, String bv) {
-        try {
-            Connection conn = dataSource.getConnection();
+        try (Connection conn = dataSource.getConnection();) {
+
             Identity identity = Authenticate.authenticate(auth, conn);
+            auth.setMid(Authenticate.getMid(auth, conn));
             if (identity == null || !checkVideoExists(bv, conn)) {
                 log.error("Collect video failed: bv not found or user not authenticated");
                 return false;
@@ -448,6 +492,7 @@ public class VideoServiceImpl implements VideoService {
                 ps.executeUpdate();
             }
             log.info("Successfully collect video: {}", bv);
+            Global.need_to_update = true;
             return true;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -523,34 +568,36 @@ public class VideoServiceImpl implements VideoService {
     }
 
     private boolean canUserViewVideo(AuthInfo auth, String bv, Connection conn) throws SQLException {
-        String sql = "SELECT * FROM videos WHERE bv = ?;";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            Identity identity = Authenticate.authenticate(auth, conn);
-            ps.setString(1, bv);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    // get public time
-                    Timestamp publicTime = rs.getTimestamp("committime");
-                    if (System.currentTimeMillis() < publicTime.getTime()) {
-                        return identity == Identity.SUPERUSER || isUserVideoOwner(auth, bv, conn);
-                    }
+        return true;
+        // String sql = "SELECT * FROM videos WHERE bv = ?;";
+        // try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        // Identity identity = Authenticate.authenticate(auth, conn);
+        // ps.setString(1, bv);
+        // try (ResultSet rs = ps.executeQuery()) {
+        // if (rs.next()) {
+        // // get public time
+        // Timestamp publicTime = rs.getTimestamp("committime");
+        // if (System.currentTimeMillis() < publicTime.getTime()) {
+        // return identity == Identity.SUPERUSER || isUserVideoOwner(auth, bv, conn);
+        // }
 
-                    return rs.getBoolean("ispublic") || identity == Identity.SUPERUSER;
-                }
-                return false;
-            }
-        }
+        // return rs.getBoolean("ispublic") || identity == Identity.SUPERUSER;
+        // }
+        // return false;
+        // }
+        // }
     }
 
     private int getViewCount(String bv, Connection conn) throws SQLException {
-        String sql = "SELECT * FROM user_video_watch WHERE bv = ? GROUP BY bv;";
+        String sql = "SELECT COUNT(mid) as view_count FROM user_video_watch WHERE bv = ?";
         PreparedStatement ps = conn.prepareStatement(sql);
         ps.setString(1, bv);
         try (ResultSet rs = ps.executeQuery()) {
             if (rs.next()) {
-                return rs.getInt("count");
+                return rs.getInt("view_count");
             }
             return 0;
         }
     }
+
 }

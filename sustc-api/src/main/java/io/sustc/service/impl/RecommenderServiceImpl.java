@@ -1,5 +1,6 @@
 package io.sustc.service.impl;
 
+import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -7,7 +8,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.naming.spi.DirStateFactory.Result;
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,8 +27,8 @@ public class RecommenderServiceImpl implements io.sustc.service.RecommenderServi
 
     @Override
     public List<String> recommendNextVideo(String bv) {
-        try {
-            Connection conn = dataSource.getConnection();
+        try(Connection conn = dataSource.getConnection();) {
+            
             String sql = "SELECT v.bv, COUNT(uvw.mid) AS common_viewers " +
                     "FROM user_video_watch uvw " +
                     "JOIN videos v ON uvw.bv = v.bv " +
@@ -67,6 +67,30 @@ public class RecommenderServiceImpl implements io.sustc.service.RecommenderServi
 
     @Override
     public List<String> generalRecommendations(int pageSize, int pageNum) {
+        if(Global.need_to_update == true){
+            //call update_video_aggregates() update_video_interactions_aggregates() update_video_stats();
+            try (Connection conn = dataSource.getConnection();){
+                try (CallableStatement callableStatement = conn.prepareCall("{CALL update_video_aggregates()}")) {
+                    callableStatement.execute();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+                try (CallableStatement callableStatement = conn.prepareCall("{CALL update_video_interactions_aggregates()}")) {
+                    callableStatement.execute();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+                try (CallableStatement callableStatement = conn.prepareCall("{CALL update_video_stats()}")) {
+                    callableStatement.execute();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+                Global.need_to_update = false;
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            Global.need_to_update = false;
+        }
         if (pageSize <= 0 || pageNum <= 0) {
             log.error("Invalid pageSize or pageNum");
             return null;
@@ -121,6 +145,7 @@ public class RecommenderServiceImpl implements io.sustc.service.RecommenderServi
                 log.error("Invalid auth");
                 return null;
             } else {
+                auth.setMid(Authenticate.getMid(auth, conn));
                 String sql = "SELECT recommend_videos_for_user(?,?,?);";
                 PreparedStatement ps = conn.prepareStatement(sql);
                 ps.setLong(1, auth.getMid());
@@ -153,6 +178,7 @@ public class RecommenderServiceImpl implements io.sustc.service.RecommenderServi
                 log.error("Invalid auth");
                 return null;
             } else {
+                auth.setMid(Authenticate.getMid(auth, conn));
                 String sql = "SELECT ur2.followerMid AS recommendedUserId, COUNT(*) AS commonFollowings, u.level " +
                         "FROM user_relationships ur1 " +
                         "JOIN user_relationships ur2 ON ur1.followingMid = ur2.followingMid " +
@@ -183,6 +209,12 @@ public class RecommenderServiceImpl implements io.sustc.service.RecommenderServi
                 if (recommendedUserIds.size() == 0) {
                     log.info("No similar users found, or the user does not exist");
                     return null;
+                }
+
+                try (CallableStatement callableStatement = conn.prepareCall("{CALL update_video_aggregates()}")) {
+                    callableStatement.execute();
+                } catch (SQLException e) {
+                    e.printStackTrace();
                 }
                 log.info("Successfully get the result of recommendFriends");
                 return recommendedUserIds;

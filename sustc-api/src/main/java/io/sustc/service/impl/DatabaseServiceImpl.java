@@ -31,8 +31,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Transactional
 public class DatabaseServiceImpl implements DatabaseService {
-    final static int batchsize = 1000;
-
     /**
      * Getting a {@link DataSource} instance from the framework, whose connections
      * are managed by HikariCP.

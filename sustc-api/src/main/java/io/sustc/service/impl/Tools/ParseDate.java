@@ -8,6 +8,9 @@ import lombok.extern.slf4j.Slf4j;
 public class ParseDate {
     
     public static LocalDate parseDate(String dateString) {
+        if (dateString==null || dateString.isEmpty()) {
+            return null;
+        }
         DateTimeFormatter formatterMMDD = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         DateTimeFormatter formatterChinese = DateTimeFormatter.ofPattern("yyyy年M月d日");
 
@@ -21,7 +24,7 @@ public class ParseDate {
             } catch (DateTimeParseException ex) {
                 // 两种格式都不对
                 log.error("Date parse failed: {}", dateString);
-                return null;
+                return LocalDate.of(2000, 1, 1);
             }
         }
     }
