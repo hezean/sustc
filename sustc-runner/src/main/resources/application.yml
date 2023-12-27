@@ -4,6 +4,9 @@ spring:
     username: sustc  # change this to your own username (avoid using a superuser)
     password: sustc  # change this to your own password
 
+      connection-timeout: 180000
+      leak-detection-threshold: 120000
+
 logging:
   level:
     root: off
