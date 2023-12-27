@@ -4,6 +4,7 @@ spring:
     username: sustc  # change this to your own username (avoid using a superuser)
     password: sustc  # change this to your own password
 
+    hikari:
       connection-timeout: 180000
       leak-detection-threshold: 120000
 
