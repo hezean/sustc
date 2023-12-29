@@ -705,7 +705,8 @@ public class BenchmarkService {
     }
 
     private static boolean userInfoEquals(UserInfoResp expect, UserInfoResp actual) {
-        return expect.getMid() == actual.getMid()
+        return Objects.isNull(expect) == Objects.isNull(actual)
+                && expect.getMid() == actual.getMid()
                 && expect.getCoin() == actual.getCoin()
                 && longArrayAsSetEquals(expect.getFollowing(), actual.getFollowing())
                 && longArrayAsSetEquals(expect.getFollower(), actual.getFollower())
